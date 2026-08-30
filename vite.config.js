@@ -2,8 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
+// Configuração oficial do Vite para GitHub Pages no repositório michelejoohann/aton
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: './',
+  base: '/aton/',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  }
 })
