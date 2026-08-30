@@ -46,10 +46,10 @@ Para cada projeto (Casamentos, 15 Anos, Formaturas, Eventos Corporativos, Bodas,
 
 ```bash
 # 1. Clonar o repositório
-git clone https://github.com/witzelarts/coringa-pm-agent.git
+git clone https://github.com/michelejoohann/aton.git
 
 # 2. Entrar na pasta do projeto
-cd coringa-pm-agent
+cd aton
 
 # 3. Instalar as dependências
 npm install
