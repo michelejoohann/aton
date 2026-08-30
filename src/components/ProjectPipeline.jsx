@@ -184,11 +184,17 @@ export default function ProjectPipeline({
                         }`}
                         onClick={() => onSelectProject(project)}
                       >
-                        {/* Collision Ribbon */}
+                        {/* Collision / SLA Ribbon */}
                         {project.collisionRisk && (
                           <div className="mb-2 inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-[0.08em] text-on-urgent bg-surface border border-urgent-border px-2 py-0.5 rounded-xs">
                             <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
                             Alerta de Prazo
+                          </div>
+                        )}
+                        {(project.stage === 'waiting_approval' || project.daysWaitingClient > 0) && (
+                          <div className="mb-2 inline-flex items-center gap-1 text-caption font-bold uppercase tracking-[0.08em] text-on-warning bg-warning-surface border border-warning-border px-2 py-0.5 rounded-xs">
+                            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+                            SLA 48h ({project.daysWaitingClient || 1}d sem resposta)
                           </div>
                         )}
 

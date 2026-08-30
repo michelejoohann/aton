@@ -11,6 +11,9 @@ export const DEFAULT_SETTINGS = {
   invitationHours: 10,
   partyHours: 20,
 
+  // SLA de Aceite do Cliente Final (em horas)
+  approvalSlaHours: 48,
+
   // Jornada de Trabalho do Usuário Principal
   morningStart: '08:00',
   morningEnd: '12:00',
@@ -193,6 +196,31 @@ export default function UserSettingsModal({ isOpen, onClose, settings, onSaveSet
                   />
                   <span className="text-caption text-ink-muted font-medium">horas</span>
                 </div>
+              </div>
+            </div>
+
+            {/* SLA de Aprovação do Cliente Final */}
+            <div className="mt-4 p-3.5 bg-surface-2 border border-line rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <label htmlFor="approvalSlaInput" className="block text-caption font-semibold text-ink">
+                  SLA de Resposta / Aceite do Cliente Final
+                </label>
+                <p className="text-caption text-ink-subtle">
+                  Prazo limite para o cliente final aprovar a arte enviada antes de disparar alerta de cobrança.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <input
+                  id="approvalSlaInput"
+                  type="number"
+                  min="1"
+                  max="168"
+                  value={formData.approvalSlaHours || 48}
+                  onChange={(e) => handleChange('approvalSlaHours', Number(e.target.value))}
+                  className="w-24 px-3 py-1.5 rounded-sm border border-line-control bg-surface text-ink font-semibold focus:outline-none text-center"
+                  required
+                />
+                <span className="text-caption text-ink-muted font-medium">horas (48h padrão)</span>
               </div>
             </div>
           </div>
