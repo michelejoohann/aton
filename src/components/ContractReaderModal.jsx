@@ -17,7 +17,10 @@ import {
   Bookmark,
   Mail,
   PartyPopper,
-  Film
+  Film,
+  Users,
+  AlertOctagon,
+  TrendingUp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -144,6 +147,8 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
   const partyHours = settings?.partyHours || 20;
   const retroHours = settings?.retrospectiveHours || 8;
   const breakMinutes = settings?.breakMinutes || 15;
+  const morningStart = settings?.morningStart || '08:00';
+  const afternoonEnd = settings?.afternoonEnd || '17:00';
 
   // Processa o arquivo ou amostra selecionada
   const handleProcessFile = (sample = null) => {
@@ -240,6 +245,21 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
     });
   }
 
+  // ── Cálculo Real de Impacto de Capacidade Operacional ─────────────────
+  const activeProjects = projects.filter(p => p.stage !== 'final_delivery');
+  const currentPendingHours = activeProjects.reduce((sum, p) => {
+    if (p.deliverables && Array.isArray(p.deliverables) && p.deliverables.length > 0) {
+      return sum + p.deliverables.filter(d => !d.completed).reduce((dSum, d) => dSum + (Number(d.requiredHours) || 5), 0);
+    }
+    return sum + (stdHours + invHours + partyHours);
+  }, 0);
+
+  const currentCapacityPercentage = Math.round((currentPendingHours / 160) * 100);
+  const projectedPendingHours = currentPendingHours + totalProductionHours;
+  const projectedCapacityPercentage = Math.round((projectedPendingHours / 160) * 100);
+  const isOverCapacity = projectedCapacityPercentage > 100;
+  const excessHours = Math.max(0, projectedPendingHours - 160);
+
   // Avança para a tela de Acordo de Confirmação
   const handleProceedToAgreement = () => {
     setStep('AGREEMENT_CONFIRMATION');
@@ -299,23 +319,23 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
       assetsReceived: false,
       deadline: extractedData.partyDate,
       daysWaitingClient: 0,
-      collisionRisk: collisionAlerts.length > 0 || acceptedExtras.length > 1,
-      riskMessage: collisionAlerts.length > 0
+      collisionRisk: isOverCapacity || collisionAlerts.length > 0 || acceptedExtras.length > 1,
+      riskMessage: isOverCapacity
+        ? `Carga de ${projectedCapacityPercentage}% (Sobrecarga de +${excessHours}h) — Requer horas extras ou suporte freelance`
+        : collisionAlerts.length > 0
         ? collisionAlerts[0]
-        : acceptedExtras.length > 0
-        ? `${acceptedExtras.length} entregáveis extras adicionados e replanejados na agenda`
         : 'Cronograma e pausas replanejados com sucesso',
       progress: 5,
       category: extractedData.category || 'Casamento',
       deliverables: [...baseDeliverables, ...extraDeliverableObjects],
-      lastUpdate: `Contrato homologado e aprovado (${totalProductionHours}h replanejadas na agenda)`
+      lastUpdate: `Contrato homologado (${totalProductionHours}h). Ocupação projetada: ${projectedCapacityPercentage}%`
     };
 
     // Dispara confetes de comemoração
     try {
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 90,
+        spread: 80,
         origin: { y: 0.6 }
       });
     } catch {
@@ -330,7 +350,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
       setStep('UPLOAD_OR_REVIEW');
       setAnalysisDone(false);
       setExtractedData(null);
-    }, 1800);
+    }, 2000);
   };
 
   return (
@@ -349,7 +369,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
               </h2>
               <p className="text-caption text-ink-muted mt-0.5">
                 {step === 'AGREEMENT_CONFIRMATION'
-                  ? 'Acordo de Confirmação & Replanejamento Automático do Calendário'
+                  ? 'Acordo de Confirmação, Diagnóstico de Capacidade & Replanejamento'
                   : 'Faça upload do contrato (PDF/DOC) para extração automática da data da festa e entregáveis extras.'}
               </p>
             </div>
@@ -419,7 +439,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
               <Sparkles className="w-12 h-12 text-accent mx-auto animate-spin" />
               <h3 className="text-section-title font-semibold text-ink">O Agente Amozir está lendo o contrato...</h3>
               <p className="text-caption text-ink-muted max-w-md mx-auto">
-                Escaneando cláusulas, identificando a data da festa, prazos limites e buscando entregáveis extras não-padronizados.
+                Escaneando cláusulas, identificando a data da festa, prazos limites e calculando o impacto na capacidade operacional.
               </p>
             </div>
           )}
@@ -455,6 +475,38 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
                   </div>
                 </div>
               </div>
+
+              {/* ALERTA VISUAL DE IMPACTO NA CAPACIDADE OPERACIONAL (> 100%) */}
+              {isOverCapacity && (
+                <div className="p-4 bg-urgent-surface border border-urgent-border rounded-md space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-urgent-border text-on-urgent">
+                    <span className="font-bold text-label uppercase tracking-wider flex items-center gap-1.5">
+                      <AlertOctagon className="w-5 h-5 shrink-0" />
+                      Alerta de Capacidade: Projeção de {projectedCapacityPercentage}% (Acima de 100%)
+                    </span>
+                    <span className="text-caption font-bold bg-surface border border-urgent-border px-2 py-0.5 rounded-xs tabular-nums">
+                      +{excessHours}h Excedentes
+                    </span>
+                  </div>
+
+                  <p className="text-caption text-ink leading-relaxed">
+                    A aquisição deste projeto adicionará <strong className="font-semibold text-ink">+{totalProductionHours}h de produção</strong>, elevando a sua taxa de ocupação de <strong className="font-semibold text-ink">{currentCapacityPercentage}%</strong> para <strong className="font-semibold text-on-urgent tabular-nums">{projectedCapacityPercentage}%</strong>.
+                  </p>
+
+                  <div className="p-3 bg-surface/90 border border-urgent-border rounded-sm text-caption space-y-1.5">
+                    <span className="font-bold text-on-urgent flex items-center gap-1">
+                      <Users className="w-4 h-4 text-urgent shrink-0" />
+                      Diagnóstico &amp; Orientação do Agente Amozir:
+                    </span>
+                    <p className="text-ink-muted">
+                      Na jornada das {morningStart}–{afternoonEnd} com pausas de {breakMinutes}min, este volume sobrecarregará a agenda e criará gargalos operacionais.
+                    </p>
+                    <p className="text-ink font-semibold bg-urgent-surface p-2 rounded-xs border border-urgent-border">
+                      👉 <strong>Ação Recomendada:</strong> Exigir <span className="underline">taxa de urgência/horas extras</span> na proposta ou <span className="underline">contratar um designer/freelancer auxiliar</span> para absorver a vetorização dos entregáveis.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Prazos Retroativos Calculados */}
               <div className="p-4 bg-surface-2 border border-line rounded-md space-y-2 text-caption">
@@ -610,7 +662,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
                 </div>
 
                 <p className="text-caption text-ink-muted">
-                  Ao confirmar este acordo, o Amozir atualizará automaticamente os dados do pipeline, replanejará a agenda diária e ativará os alertas de monitoramento para o novo contrato:
+                  Ao confirmar este acordo, o Amozir atualizará automaticamente os dados do pipeline, recalculará a capacidade e replanejará a agenda diária:
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-surface p-3 rounded-sm border border-line text-caption">
@@ -632,6 +684,30 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
                   </div>
                 </div>
               </div>
+
+              {/* ALERTA DE CAPACIDADE EXCEDIDA NO ACORDO */}
+              {isOverCapacity ? (
+                <div className="p-4 bg-urgent-surface border border-urgent-border rounded-md space-y-2">
+                  <div className="flex items-center gap-2 text-on-urgent font-bold text-label">
+                    <AlertOctagon className="w-5 h-5 shrink-0" />
+                    <span>ALERTA: Nova Carga Excede a Capacidade Máxima ({projectedCapacityPercentage}%)</span>
+                  </div>
+                  <p className="text-caption text-ink">
+                    Você está assumindo este contrato com <strong className="font-bold text-on-urgent">+{excessHours}h excedentes</strong> acima do teto de 100%. A agenda das {morningStart}–{afternoonEnd} ficará sobrecarregada.
+                  </p>
+                  <p className="text-caption font-semibold text-on-urgent bg-surface/80 p-2 rounded-xs border border-urgent-border">
+                    💡 <strong>Orientação ao Designer:</strong> Programe horas extras remuneradas na precificação ou delegue parte da diagramação a um auxiliar freelancer.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-sm text-caption flex items-center justify-between text-emerald-800">
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    Capacidade Dentro do Teto: Projeção de {projectedCapacityPercentage}%
+                  </span>
+                  <span className="font-bold tabular-nums">+{totalProductionHours}h alocadas</span>
+                </div>
+              )}
 
               {/* Replanejamento do Calendário */}
               <div className="bg-surface rounded-md border border-line p-4 space-y-3">
@@ -710,7 +786,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
                 ) : (
                   <div className="p-3 bg-surface-2 border border-line rounded-sm text-caption text-ink-muted flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Nenhum conflito direto detectado com os outros {projects.length} eventos no cronograma.</span>
+                    <span>Nenhum conflito de datas diretas detectado com os outros {projects.length} eventos.</span>
                   </div>
                 )}
 
@@ -758,7 +834,7 @@ export default function ContractReaderModal({ isOpen, onClose, onAddProject, set
               </div>
               <h3 className="text-section-title font-bold text-ink">Contrato Homologado &amp; Calendário Replanejado!</h3>
               <p className="text-caption text-ink-muted max-w-md mx-auto">
-                O evento <strong className="text-ink font-semibold">{extractedData?.name}</strong> foi adicionado ao pipeline. A agenda diária, prazos retroativos e alertas de produção foram atualizados.
+                O evento <strong className="text-ink font-semibold">{extractedData?.name}</strong> foi adicionado ao pipeline. A capacidade saltou para <strong className="text-on-urgent font-bold tabular-nums">{projectedCapacityPercentage}%</strong> e a agenda diária foi replanejada.
               </p>
             </div>
           )}

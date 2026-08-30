@@ -113,6 +113,22 @@ export default function CoringaAgentDrawer({
       actionRecommendation = 'AÇÃO RECOMENDADA: Abrir briefing hoje mesmo e travar o layout para evitar estouro do SLA de aprovação de 48h.';
     }
 
+    // Cálculo de Impacto na Capacidade
+    const activeProjects = projects.filter(p => p.stage !== 'final_delivery');
+    const currentPendingHours = activeProjects.reduce((sum, p) => {
+      if (p.deliverables && Array.isArray(p.deliverables) && p.deliverables.length > 0) {
+        return sum + p.deliverables.filter(d => !d.completed).reduce((dSum, d) => dSum + (Number(d.requiredHours) || 5), 0);
+      }
+      return sum + (stdHours + invHours + partyHours);
+    }, 0);
+
+    const eventProductionHours = stdHours + invHours + partyHours + retroHours;
+    const currentCapacityPercentage = Math.round((currentPendingHours / 160) * 100);
+    const projectedPendingHours = currentPendingHours + eventProductionHours;
+    const projectedCapacityPercentage = Math.round((projectedPendingHours / 160) * 100);
+    const isOverCapacity = projectedCapacityPercentage > 100;
+    const excessHours = Math.max(0, projectedPendingHours - 160);
+
     setSimResult({
       partyDate: simPartyDate,
       saveTheDateDeadline: stdDeadline,
@@ -128,7 +144,12 @@ export default function CoringaAgentDrawer({
       status,
       statusTitle,
       statusDescription,
-      actionRecommendation
+      actionRecommendation,
+      currentCapacityPercentage,
+      projectedCapacityPercentage,
+      isOverCapacity,
+      excessHours,
+      eventProductionHours
     });
   };
 
@@ -603,6 +624,27 @@ export default function CoringaAgentDrawer({
                       </div>
                     </div>
                   </div>
+
+                  {/* Alerta de Sobrecarga de Capacidade (> 100%) */}
+                  {simResult.isOverCapacity && (
+                    <div className="p-3 bg-urgent-surface border border-urgent-border rounded-sm space-y-1.5 text-caption">
+                      <div className="flex items-center justify-between font-bold text-on-urgent">
+                        <span className="flex items-center gap-1.5 uppercase tracking-wider">
+                          <AlertOctagon className="w-4 h-4 shrink-0" />
+                          Alerta: Projeção de {simResult.projectedCapacityPercentage}% (Sobrecarga de +{simResult.excessHours}h)
+                        </span>
+                        <span className="bg-surface px-2 py-0.5 rounded-xs border border-urgent-border text-[11px] tabular-nums">
+                          +{simResult.eventProductionHours}h novo evento
+                        </span>
+                      </div>
+                      <p className="text-ink">
+                        A entrada deste evento elevará sua ocupação de <strong>{simResult.currentCapacityPercentage}%</strong> para <strong className="text-on-urgent">{simResult.projectedCapacityPercentage}%</strong>, ultrapassando a capacidade mensal de 160h.
+                      </p>
+                      <p className="text-on-urgent font-semibold bg-surface/80 p-2 rounded-xs border border-urgent-border">
+                        ⚠️ <strong>Orientação de Agenda:</strong> Na jornada das {morningStart}–{afternoonEnd} com pausas de {breakMinutes}min, haverá sobrecarga. Programe <u>horas extras na proposta</u> ou <u>contrate apoio/freelancer auxiliar</u> para a produção.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Recomendação de Ação do Amozir */}
                   <div className="p-3 bg-surface/90 border border-line rounded-sm space-y-1">
