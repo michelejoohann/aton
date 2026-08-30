@@ -6,6 +6,7 @@
 ![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-Active-22C55E?style=for-the-badge&logo=github&logoColor=white)
 
 ---
 
@@ -42,6 +43,14 @@ Para cada projeto (Casamentos, 15 Anos, Formaturas, Eventos Corporativos, Bodas,
 
 ---
 
+## 🌐 Publicação no GitHub Pages
+
+O projeto possui publicação automática no GitHub Pages via GitHub Actions:
+
+👉 **Link Público Oficial:** [https://michelejoohann.github.io/aton/](https://michelejoohann.github.io/aton/)
+
+---
+
 ## 🚀 Como Rodar Localmente
 
 ```bash
@@ -59,14 +68,6 @@ npm run dev
 ```
 
 Acesse em `http://localhost:5173/`.
-
----
-
-## 📦 Implantação no Vercel
-
-1. Acesse [vercel.com/new](https://vercel.com/new)
-2. Importe o repositório GitHub `witzelarts/coringa-pm-agent`
-3. O Vercel detectará o Vite automaticamente. Clique em **Deploy**.
 
 ---
 
