@@ -1,15 +1,15 @@
 import React from 'react';
-import { X, Calendar, CheckSquare, User, PartyPopper, Mail, Bookmark, Sun } from 'lucide-react';
+import { X, Calendar, CheckSquare, User, PartyPopper, Mail, Bookmark, Sun, FileText, DollarSign } from 'lucide-react';
 import { STAGES } from '../data/mockData';
 import { formatDateBR } from '../utils/dateUtils';
 
-export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
+export default function ProjectDetailModal({ project, onClose }) {
   if (!project) return null;
 
   const currentStageInfo = STAGES.find(s => s.id === project.stage);
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay animate-fade-in">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs overflow-y-auto">
       <div className="bg-surface border border-line rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-modal text-ink p-5 sm:p-6 space-y-6">
 
         {/* Modal Header */}
@@ -26,26 +26,38 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
             <h2 className="font-display text-page-title font-semibold text-ink tracking-tight">
               {project.name}
             </h2>
-            <p className="text-label text-ink-muted mt-1 flex items-center gap-2">
-              <User className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
-              <span>Cliente: <strong className="font-semibold text-ink">{project.client}</strong></span>
-            </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-label text-ink-muted mt-1.5">
+              <span className="flex items-center gap-1.5">
+                <User className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Cliente: <strong className="font-semibold text-ink">{project.client}</strong>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Contrato: <strong className="font-semibold text-ink">{formatDateBR(project.contractDate || '2026-09-01')}</strong>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Valor: <strong className="font-semibold text-ink tabular-nums">R$ {project.value.toLocaleString('pt-BR')}</strong>
+              </span>
+            </div>
           </div>
 
           <button
             onClick={onClose}
             aria-label="Fechar detalhes do projeto"
-            className="inline-flex items-center justify-center shrink-0 min-w-11 min-h-11 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
+            className="inline-flex items-center justify-center shrink-0 p-2 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
-        {/* Deliverables Timeline Display (Save the Date 6m, Convite 3m, Festa) */}
+        {/* Deliverables Timeline Display */}
         <div className="bg-surface-2 border border-line rounded-sm p-4 space-y-3">
           <h3 className="text-label font-semibold text-ink flex items-center gap-2">
             <Calendar className="w-4 h-4 text-accent" aria-hidden="true" />
-            Cronograma dos 3 entregáveis obrigatórios
+            Cronograma dos 3 entregáveis do contrato
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-grid">
@@ -57,7 +69,6 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
                   <Bookmark className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
                   Save the Date
                 </span>
-                <span className="text-caption bg-surface-2 border border-line px-1.5 py-0.5 rounded-xs text-ink-muted">6m antes</span>
               </div>
               <p className="text-caption text-ink-muted">Prazo limite:</p>
               <strong className="block text-section-title font-semibold text-ink tabular-nums">{formatDateBR(project.saveTheDateDeadline)}</strong>
@@ -70,7 +81,6 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
                   <Mail className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
                   Convite Oficial
                 </span>
-                <span className="text-caption bg-surface-2 border border-line px-1.5 py-0.5 rounded-xs text-ink-muted">3m antes</span>
               </div>
               <p className="text-caption text-ink-muted">Prazo limite:</p>
               <strong className="block text-section-title font-semibold text-ink tabular-nums">{formatDateBR(project.invitationDeadline)}</strong>
@@ -83,7 +93,6 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
                   <PartyPopper className="w-4 h-4 text-accent" aria-hidden="true" />
                   Data da Festa
                 </span>
-                <span className="text-caption bg-surface border border-line px-1.5 py-0.5 rounded-xs text-ink-muted">Prazo Final</span>
               </div>
               <p className="text-caption text-ink-muted">Dia do Evento:</p>
               <strong className="block text-section-title font-semibold text-accent tabular-nums">{formatDateBR(project.partyDate)}</strong>
@@ -97,7 +106,7 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-line">
             <h3 className="text-section-title font-semibold text-ink flex items-center gap-2">
               <CheckSquare className="w-4 h-4 text-accent" aria-hidden="true" />
-              Etapas dos entregáveis
+              Etapas dos entregáveis do contrato
             </h3>
             <span className="text-label text-ink-muted tabular-nums">
               {project.deliverables.filter(d => d.completed).length} de {project.deliverables.length} entregues
@@ -140,7 +149,7 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
               Orientação do Amozir
             </strong>
             <p className="text-label text-ink-muted">
-              Mantenha o foco na aprovação do Convite Oficial. O prazo limite retroativo de 3 meses garante a caligrafia e impressão sem pânico na véspera da festa.
+              Mantenha o foco na aprovação do Convite Oficial. O cronograma retroativo garante a entrega sem estresse para a festa.
             </p>
           </div>
         </div>
@@ -149,7 +158,7 @@ export default function ProjectDetailModal({ project, onClose, onToggleTask }) {
         <div className="flex justify-end gap-3 pt-4 border-t border-line">
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center min-h-11 px-4 rounded-sm bg-surface border border-line-control text-ink text-label font-semibold hover:bg-surface-2 transition-colors duration-150 ease-quint"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold transition-colors"
           >
             Fechar
           </button>

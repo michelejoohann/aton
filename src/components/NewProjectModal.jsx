@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, PartyPopper, Mail, Bookmark } from 'lucide-react';
+import { X, Plus, PartyPopper, Mail, Bookmark, FileText } from 'lucide-react';
 import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
 
 export default function NewProjectModal({ isOpen, onClose, onAddProject, settings }) {
@@ -7,6 +7,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
   const [client, setClient] = useState('');
   const [category, setCategory] = useState('Casamento');
   const [value, setValue] = useState(5500);
+  const [contractDate, setContractDate] = useState('2026-09-01');
   const [partyDate, setPartyDate] = useState('2027-04-15');
 
   if (!isOpen) return null;
@@ -30,6 +31,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
       client,
       stage: 'briefing',
       value: Number(value),
+      contractDate: contractDate || '2026-09-01',
       partyDate,
       saveTheDateDeadline,
       invitationDeadline,
@@ -44,7 +46,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
         { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: `${invWeeks} semanas antes`, requiredHours: invHours, deadline: invitationDeadline, status: 'pending', completed: false },
         { id: `d-${Date.now()}-3`, title: 'Festa / Evento', rule: 'Data da Festa', requiredHours: partyHours, deadline: partyDate, status: 'pending', completed: false }
       ],
-      lastUpdate: 'Cadastrado no Amozir'
+      lastUpdate: `Contrato assinado em ${formatDateBR(contractDate || '2026-09-01')}`
     };
 
     onAddProject(newProj);
@@ -68,8 +70,8 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
               <Plus className="w-5 h-5" />
             </span>
             <div className="min-w-0">
-              <h2 className="font-display text-section-title font-semibold text-ink">Cadastrar Novo Evento / Festa</h2>
-              <p className="text-caption text-ink-muted">Cálculo retroativo pelas regras de {stdWeeks}w e {invWeeks}w semanas</p>
+              <h2 className="font-display text-section-title font-semibold text-ink">Cadastrar Novo Evento / Contrato</h2>
+              <p className="text-caption text-ink-muted">Com Data de Contrato e cálculo retroativo de {stdWeeks}w e {invWeeks}w semanas</p>
             </div>
           </div>
 
@@ -129,11 +131,26 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-grid">
             <div>
-              <label className={`${labelClass} text-accent flex items-center gap-1.5`} htmlFor="np-party-date">
+              <label className={`${labelClass} flex items-center gap-1`} htmlFor="np-contract-date">
+                <FileText className="w-3.5 h-3.5 text-ink-subtle" />
+                Data Contrato:
+              </label>
+              <input
+                id="np-contract-date"
+                type="date"
+                required
+                value={contractDate}
+                onChange={(e) => setContractDate(e.target.value)}
+                className={`${fieldClass} font-semibold tabular-nums`}
+              />
+            </div>
+
+            <div>
+              <label className={`${labelClass} text-accent flex items-center gap-1`} htmlFor="np-party-date">
                 <PartyPopper className="w-3.5 h-3.5" aria-hidden="true" />
-                Data Final da Festa:
+                Data da Festa:
               </label>
               <input
                 id="np-party-date"
@@ -146,7 +163,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
             </div>
 
             <div>
-              <label className={labelClass} htmlFor="np-value">Valor do Contrato (R$):</label>
+              <label className={labelClass} htmlFor="np-value">Valor (R$):</label>
               <input
                 id="np-value"
                 type="number"
@@ -161,11 +178,20 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
           <div className="p-3.5 bg-surface-2 border border-line rounded-sm space-y-2 text-label">
             <div className="flex items-center justify-between gap-2 text-ink-muted">
               <span className="flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Assinatura do Contrato:
+              </span>
+              <strong className="font-semibold text-ink tabular-nums">{formatDateBR(contractDate)}</strong>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 text-ink-muted">
+              <span className="flex items-center gap-1.5">
                 <Bookmark className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
                 Save the Date ({stdWeeks} semanas / {stdHours}h):
               </span>
               <strong className="font-semibold text-ink tabular-nums">{formatDateBR(saveTheDateDeadline)}</strong>
             </div>
+
             <div className="flex items-center justify-between gap-2 text-ink-muted">
               <span className="flex items-center gap-1.5">
                 <Mail className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
@@ -173,6 +199,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
               </span>
               <strong className="font-semibold text-ink tabular-nums">{formatDateBR(invitationDeadline)}</strong>
             </div>
+
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-line text-ink">
               <span className="flex items-center gap-1.5 font-semibold">
                 <PartyPopper className="w-4 h-4 text-accent" aria-hidden="true" />
@@ -194,7 +221,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
               type="submit"
               className="inline-flex items-center justify-center min-h-11 px-5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold transition-colors duration-150 ease-quint"
             >
-              Criar Evento com Retro-Datas
+              Criar Contrato com Retro-Datas
             </button>
           </div>
 
