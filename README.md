@@ -1,16 +1,75 @@
-# React + Vite
+# 🃏 Coringa | Agente Gerente de Projetos IA (Hackathon MVP)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Gerente de Projetos Inteligente para Criativos Autônomos e Microestúdios de Eventos**
 
-Currently, two official plugins are available:
+![Coringa PM Agent](https://img.shields.io/badge/Coringa-Agente_IA-8B5CF6?style=for-the-badge)
+![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🎯 Definição Central do ICP
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> **Profissionais criativos autônomos e microestúdios de eventos que entregam de 2 a 4 projetos por mês, mas administram simultaneamente de 6 a 12 projetos em etapas sobrepostas, sem possuir um gerente de projetos dedicado.**
 
-## Expanding the Oxlint configuration
+O problema não é falta de demanda, mas a **perda da visão do conjunto e a gestão de prioridades no susto** conforme os projetos atravessam diferentes meses.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+---
+
+## ⚡ Regras de Negócio Implementadas
+
+### 📌 Regra Padronizada dos 3 Entregáveis Por Evento:
+Para cada projeto (Casamentos, 15 Anos, Formaturas, Eventos Corporativos, Bodas, Batizados), o Coringa impõe o cálculo retroativo das datas:
+
+1. 📌 **Save the Date**: Prazo limite automático até **6 meses antes da festa** (`Festa - 6 meses`).
+2. 💌 **Convite Oficial**: Prazo limite automático até **3 meses antes da festa** (`Festa - 3 meses`).
+3. 🎉 **Festa / Evento**: Data final do evento.
+
+---
+
+## 🔥 Funcionalidades Chave
+
+- **🎯 Radar de Foco & Monitor de Regras**: Exibe em tempo real o que precisa da atenção imediata para que a criativa nunca trabalhe no caos.
+- **📊 Pipeline Multiestágio (Kanban)**: Visão unificada das 5 etapas cruciais (*Briefing*, *Em Criação*, *Aguardando Cliente*, *Ajustes/Refinamento*, *Pronto/Entregue*).
+- **📅 Visão de Calendário Interativa**: Grade mensal com marcadores visuais diferenciados para Save the Date, Convites e Festas.
+- **🤖 Agente Coringa (Drawer IA)**:
+  - Verificador de prazos limites (6m / 3m).
+  - Reorganizador de conflitos de produção.
+  - Calculadora de retro-prazos para novas demandas ("Cabe +1 Evento?").
+  - Player de Daily Briefing narrado.
+- **💡 Tese de Vendas ICP (R$ 47,00/mês)**: Modal explicativo com a defesa econômica do produto.
+
+---
+
+## 🚀 Como Rodar Localmente
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/witzelarts/coringa-pm-agent.git
+
+# 2. Entrar na pasta do projeto
+cd coringa-pm-agent
+
+# 3. Instalar as dependências
+npm install
+
+# 4. Iniciar o servidor de desenvolvimento
+npm run dev
+```
+
+Acesse em `http://localhost:5173/`.
+
+---
+
+## 📦 Implantação no Vercel
+
+1. Acesse [vercel.com/new](https://vercel.com/new)
+2. Importe o repositório GitHub `witzelarts/coringa-pm-agent`
+3. O Vercel detectará o Vite automaticamente. Clique em **Deploy**.
+
+---
+
+### 💳 Modelo de Negócio
+- Mensalidade: **R$ 47,00/mês** (Aproximadamente R$ 1,57/dia).
+- Valor percebido: Se economizar 1 hora de organização por mês, o produto já se paga.
