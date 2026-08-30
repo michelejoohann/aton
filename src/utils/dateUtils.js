@@ -210,6 +210,9 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
         isStdCritical
       );
 
+      const daysToStd = getDaysDiffFromToday(project.saveTheDateDeadline);
+      const stdPriority = isStdCritical || daysToStd <= 7 ? 'HIGH' : daysToStd <= 21 ? 'MEDIUM' : 'LOW';
+
       stdSubTasks.forEach((sub, idx) => {
         allMiniTasks.push({
           id: `${project.id}-std-sub-${idx}`,
@@ -223,6 +226,7 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
           durationHours: sub.durationHours,
           deadline: project.saveTheDateDeadline,
           isCritical: sub.isCritical,
+          priority: stdPriority,
           partyDate: project.partyDate
         });
       });
@@ -239,6 +243,9 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
         isInvCritical
       );
 
+      const daysToInv = getDaysDiffFromToday(project.invitationDeadline);
+      const invPriority = isInvCritical || daysToInv <= 7 ? 'HIGH' : daysToInv <= 21 ? 'MEDIUM' : 'LOW';
+
       invSubTasks.forEach((sub, idx) => {
         allMiniTasks.push({
           id: `${project.id}-inv-sub-${idx}`,
@@ -252,6 +259,7 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
           durationHours: sub.durationHours,
           deadline: project.invitationDeadline,
           isCritical: sub.isCritical,
+          priority: invPriority,
           partyDate: project.partyDate
         });
       });
@@ -268,6 +276,9 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
         isRetroCritical
       );
 
+      const daysToRetro = getDaysDiffFromToday(project.retrospectiveDeadline || project.partyDate);
+      const retroPriority = isRetroCritical || daysToRetro <= 7 ? 'HIGH' : 'MEDIUM';
+
       retroSubTasks.forEach((sub, idx) => {
         allMiniTasks.push({
           id: `${project.id}-retro-sub-${idx}`,
@@ -281,6 +292,7 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
           durationHours: sub.durationHours,
           deadline: project.retrospectiveDeadline || project.partyDate,
           isCritical: sub.isCritical,
+          priority: retroPriority,
           partyDate: project.partyDate,
           assetsReceived: Boolean(project.assetsReceived)
         });
@@ -302,7 +314,8 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
           subTaskTitle: extra.description || extra.rule || 'Produção de entregável contratado em anexo',
           durationHours: Math.min(2.5, extra.requiredHours || 2.0),
           deadline: extra.deadline || project.saveTheDateDeadline || project.partyDate,
-          isCritical: true, // Novos entregáveis extras entram com alta prioridade de alocação
+          isCritical: true,
+          priority: 'HIGH', // Entregáveis extras entram com prioridade alta
           partyDate: project.partyDate
         });
       });
@@ -321,23 +334,25 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
         subTaskTitle: 'Coleta de referências do contrato e setup dos prazos retroativos',
         durationHours: 2.0,
         deadline: project.contractDate || DEFAULT_SYSTEM_TODAY,
-        isCritical: true, // Primeiro horário da manhã para novos contratos
+        isCritical: true,
+        priority: 'HIGH',
         partyDate: project.partyDate
       });
     }
   });
 
-  // Ordenação com prioridade matinal para itens com prazo no dia em questão (targetDateStr) e itens críticos (08:00 AM)
+  // Ordenação com prioridade (HIGH > MEDIUM > LOW) e proximidade de prazo
+  const priorityWeight = { HIGH: 3, MEDIUM: 2, LOW: 1 };
   allMiniTasks.sort((a, b) => {
-    // 1. Prioridade máxima absoluta para tarefas com prazo para a data de hoje (01/09/2026)
+    // 1. Prioridade máxima absoluta para tarefas que vencem hoje (01/09/2026)
     const aIsToday = a.deadline === targetDateStr || a.deadline === DEFAULT_SYSTEM_TODAY;
     const bIsToday = b.deadline === targetDateStr || b.deadline === DEFAULT_SYSTEM_TODAY;
     if (aIsToday && !bIsToday) return -1;
     if (!aIsToday && bIsToday) return 1;
 
-    // 2. Prioridade para tarefas marcadas como críticas ou de novos contratos
-    if (a.isCritical && !b.isCritical) return -1;
-    if (!a.isCritical && b.isCritical) return 1;
+    // 2. Nível de prioridade (Alta > Média > Baixa)
+    const weightDiff = (priorityWeight[b.priority] || 1) - (priorityWeight[a.priority] || 1);
+    if (weightDiff !== 0) return weightDiff;
 
     // 3. Proximidade da data limite
     return getDaysDiffFromToday(a.deadline, targetDateStr) - getDaysDiffFromToday(b.deadline, targetDateStr);

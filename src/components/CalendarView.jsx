@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Grid,
   ListOrdered,
-  Film
+  Film,
+  CheckCircle2
 } from 'lucide-react';
 import { formatDateBR, generateDailySchedule, getDaysDiffFromToday, DEFAULT_SYSTEM_TODAY } from '../utils/dateUtils.js';
 
@@ -175,7 +176,8 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
 
   // Estatísticas do agendamento
   const totalScheduledHours = dailyScheduleData.schedule.reduce((sum, s) => sum + s.durationHours, 0);
-  const criticalCount = dailyScheduleData.schedule.filter(s => s.isCritical).length;
+  const highPriorityCount = dailyScheduleData.schedule.filter(s => s.priority === 'HIGH' || s.isCritical).length;
+  const mediumPriorityCount = dailyScheduleData.schedule.filter(s => s.priority === 'MEDIUM').length;
 
   return (
     <section className="mb-section space-y-5">
@@ -263,7 +265,8 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
                   <>
                     <strong className="font-semibold text-ink tabular-nums">{dailyScheduleData.schedule.length}</strong> tarefas alocadas •{' '}
                     <strong className="font-semibold text-ink tabular-nums">{totalScheduledHours.toFixed(1)}h</strong> de produção •{' '}
-                    {criticalCount > 0 && <span className="text-on-warning font-semibold">{criticalCount} crítica(s) matinal(is)</span>}
+                    {highPriorityCount > 0 && <span className="text-on-urgent font-bold">{highPriorityCount} alta</span>}
+                    {mediumPriorityCount > 0 && <span className="text-amber-800 font-semibold ml-1.5">• {mediumPriorityCount} média</span>}
                   </>
                 )}
               </p>
@@ -336,18 +339,18 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
           ) : (
             <div className="space-y-3">
               {dailyScheduleData.schedule.map((slot, index) => {
-                const isMorning = slot.isMorningPriority;
                 const typePresentation = EVENT_PRESENTATION[slot.type] || EVENT_PRESENTATION.PARTY;
                 const TypeIcon = typePresentation.Icon;
+                const taskPriority = slot.priority || (slot.isCritical ? 'HIGH' : 'MEDIUM');
 
                 return (
                   <React.Fragment key={slot.id}>
                     <div
                       className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-md border transition-all ${
-                        slot.isCritical
-                          ? 'bg-warning-surface border-warning-border'
-                          : isMorning
-                          ? 'bg-accent-soft/40 border-accent/30'
+                        taskPriority === 'HIGH'
+                          ? 'bg-urgent-surface/30 border-urgent-border shadow-subtle'
+                          : taskPriority === 'MEDIUM'
+                          ? 'bg-warning-surface/20 border-warning-border'
                           : 'bg-surface-2 border-line'
                       }`}
                     >
@@ -359,12 +362,24 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
                         </span>
 
                         <div className="flex flex-col items-start gap-1">
-                          {slot.isCritical && (
-                            <span className="inline-flex items-center gap-1 text-caption font-semibold uppercase text-on-warning bg-surface border border-warning-border px-2 py-0.5 rounded-xs">
-                              <AlertTriangle className="w-3 h-3" />
-                              Prioridade Matinal
+                          {/* Tags de Prioridade Alta, Média ou Baixa */}
+                          {taskPriority === 'HIGH' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-on-urgent bg-urgent-surface border border-urgent-border px-2 py-0.5 rounded-xs">
+                              <AlertTriangle className="w-3 h-3 text-urgent shrink-0" />
+                              Prioridade Alta
+                            </span>
+                          ) : taskPriority === 'MEDIUM' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-warning-surface border border-warning-border px-2 py-0.5 rounded-xs">
+                              <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                              Prioridade Média
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-xs">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                              Prioridade Baixa
                             </span>
                           )}
+
                           <span className="inline-flex items-center gap-1 text-caption font-medium text-ink-muted">
                             <TypeIcon className="w-3 h-3" />
                             {slot.deliverableName} • {slot.durationHours}h
@@ -376,7 +391,11 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`text-caption font-bold uppercase tracking-wider px-2 py-0.5 rounded-xs border ${
-                            slot.isCritical ? 'text-on-warning bg-warning-surface border-warning-border' : 'text-accent bg-surface border-line'
+                            taskPriority === 'HIGH'
+                              ? 'text-on-urgent bg-urgent-surface border-urgent-border'
+                              : taskPriority === 'MEDIUM'
+                              ? 'text-amber-800 bg-warning-surface border-warning-border'
+                              : 'text-accent bg-surface border-line'
                           }`}>
                             {slot.stepName}
                           </span>
