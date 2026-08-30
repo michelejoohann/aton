@@ -1,263 +1,267 @@
-// Utilitários de Cálculo Retroativo de Datas e Agendamento Inteligente de Mini-Tarefas
+/**
+ * Módulo de Utilitários de Data, Cálculos Retroativos e Agendamento Inteligente
+ * @module dateUtils
+ */
 
 /**
- * Calcula o prazo do Save the Date em semanas antes da Festa (Padrão: 6 semanas)
+ * Data de referência padrão do sistema para comparações em ambiente estático/demo.
+ * @type {string}
  */
-export function calculateSaveTheDateDeadline(partyDateStr, weeks = 6) {
-  if (!partyDateStr) return '';
-  const date = new Date(partyDateStr + 'T00:00:00');
-  date.setDate(date.getDate() - (weeks * 7));
-  return date.toISOString().split('T')[0];
+export const DEFAULT_SYSTEM_TODAY = '2026-09-01';
+
+/**
+ * Converte com segurança qualquer entrada em objeto Date válido.
+ * @param {string|Date} input
+ * @returns {Date|null}
+ */
+export function safeParseDate(input) {
+  if (!input) return null;
+  if (input instanceof Date && !isNaN(input.getTime())) return input;
+  
+  if (typeof input === 'string') {
+    const cleanStr = input.includes('T') ? input : `${input}T00:00:00`;
+    const parsed = new Date(cleanStr);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
 }
 
 /**
- * Calcula o prazo do Convite em semanas antes da Festa (Padrão: 3 semanas)
- */
-export function calculateInvitationDeadline(partyDateStr, weeks = 3) {
-  if (!partyDateStr) return '';
-  const date = new Date(partyDateStr + 'T00:00:00');
-  date.setDate(date.getDate() - (weeks * 7));
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Calcula o prazo da Retrospectiva em dias antes da Festa (Padrão: 1 dia antes)
- */
-export function calculateRetrospectiveDeadline(partyDateStr, daysBefore = 1) {
-  if (!partyDateStr) return '';
-  const date = new Date(partyDateStr + 'T00:00:00');
-  date.setDate(date.getDate() - daysBefore);
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Formata data no padrão brasileiro (DD/MM/AAAA)
+ * Formata uma string no formato ISO (AAAA-MM-DD) para o padrão brasileiro (DD/MM/AAAA).
+ * @param {string} dateStr - Data no formato YYYY-MM-DD.
+ * @returns {string} Data formatada ou string vazia em caso de valor inválido.
  */
 export function formatDateBR(dateStr) {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-');
-  return `${day}/${month}/${year}`;
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const clean = dateStr.split('T')[0];
+  const parts = clean.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
 }
 
 /**
- * Verifica diferença em dias em relação à data de referência do sistema
+ * Calcula o prazo retroativo do Save the Date em semanas antes da Festa.
+ * @param {string} partyDateStr - Data da Festa (YYYY-MM-DD).
+ * @param {number} [weeks=6] - Quantidade de semanas de antecedência.
+ * @returns {string} Data limite formatada (YYYY-MM-DD).
  */
-export function getDaysDiffFromToday(targetDateStr) {
-  const today = new Date('2026-09-01T00:00:00'); // Data de referência
-  const target = new Date(targetDateStr + 'T00:00:00');
-  const diffTime = target.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+export function calculateSaveTheDateDeadline(partyDateStr, weeks = 6) {
+  const date = safeParseDate(partyDateStr);
+  if (!date) return '';
+  date.setDate(date.getDate() - (Number(weeks) * 7));
+  return date.toISOString().split('T')[0];
 }
 
 /**
- * Converte horário "HH:MM" em minutos a partir do início do dia (ex: "08:00" -> 480)
+ * Calcula o prazo retroativo do Convite em semanas antes da Festa.
+ * @param {string} partyDateStr - Data da Festa (YYYY-MM-DD).
+ * @param {number} [weeks=3] - Quantidade de semanas de antecedência.
+ * @returns {string} Data limite formatada (YYYY-MM-DD).
+ */
+export function calculateInvitationDeadline(partyDateStr, weeks = 3) {
+  const date = safeParseDate(partyDateStr);
+  if (!date) return '';
+  date.setDate(date.getDate() - (Number(weeks) * 7));
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Calcula o prazo retroativo da Retrospectiva em dias antes da Festa.
+ * @param {string} partyDateStr - Data da Festa (YYYY-MM-DD).
+ * @param {number} [daysBefore=1] - Dias de antecedência.
+ * @returns {string} Data limite formatada (YYYY-MM-DD).
+ */
+export function calculateRetrospectiveDeadline(partyDateStr, daysBefore = 1) {
+  const date = safeParseDate(partyDateStr);
+  if (!date) return '';
+  date.setDate(date.getDate() - Number(daysBefore));
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Retorna a diferença em dias inteiros entre a data informada e a data base do sistema.
+ * @param {string} targetDateStr - Data destino (YYYY-MM-DD).
+ * @param {string} [referenceDateStr=DEFAULT_SYSTEM_TODAY] - Data base de comparação.
+ * @returns {number} Diferença em dias.
+ */
+export function getDaysDiffFromToday(targetDateStr, referenceDateStr = DEFAULT_SYSTEM_TODAY) {
+  const target = safeParseDate(targetDateStr);
+  const reference = safeParseDate(referenceDateStr);
+  
+  if (!target || !reference) return 0;
+  
+  const diffMs = target.getTime() - reference.getTime();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Converte horário "HH:MM" em minutos desde o início do dia (ex: "08:30" -> 510).
+ * @param {string} timeStr - Horário no formato "HH:MM".
+ * @returns {number} Minutos totais.
  */
 export function timeToMinutes(timeStr) {
-  if (!timeStr) return 0;
-  const [hours, minutes] = timeStr.split(':').map(Number);
+  if (!timeStr || typeof timeStr !== 'string') return 0;
+  const [hStr, mStr] = timeStr.split(':');
+  const hours = parseInt(hStr, 10) || 0;
+  const minutes = parseInt(mStr, 10) || 0;
   return (hours * 60) + minutes;
 }
 
 /**
- * Converte minutos em formato "HH:MM" (ex: 510 -> "08:30")
+ * Converte minutos a partir da meia-noite em formato "HH:MM" (ex: 510 -> "08:30").
+ * @param {number} totalMinutes
+ * @returns {string}
  */
 export function minutesToTime(totalMinutes) {
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
+  if (typeof totalMinutes !== 'number' || isNaN(totalMinutes)) return '00:00';
+  const clamped = Math.max(0, Math.floor(totalMinutes));
+  const h = Math.floor(clamped / 60) % 24;
+  const m = clamped % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 /**
- * Decompõe entregáveis inteiros em MINI-TAREFAS diluídas com carga horária fracionada
+ * Definições e especificações das mini-tarefas fracionadas por tipo de entregável.
+ */
+const DELIVERABLE_MINI_TASK_TEMPLATES = {
+  SAVE_THE_DATE: [
+    { stepName: 'Sessão 1/3: Concept & Moodboard', subTaskTitle: 'Coleta de referências, conceito visual e paleta de cores', defaultHours: 1.5 },
+    { stepName: 'Sessão 2/3: Design Layout & Tipografia', subTaskTitle: 'Composição gráfica do Save the Date e vetorização', defaultHours: 2.0 },
+    { stepName: 'Sessão 3/3: Fechamento & Disparo', subTaskTitle: 'Ajustes de contraste, exportação em alta e disparo digital', defaultHours: 1.5 },
+  ],
+  INVITATION: [
+    { stepName: 'Sessão 1/4: Ilustração & Monograma', subTaskTitle: 'Vetorização do brasão do casal e arte do envelope', defaultHours: 2.5 },
+    { stepName: 'Sessão 2/4: Diagramação & Faca Especial', subTaskTitle: 'Mapeamento de faca gráfica, sangria e prova de cor', defaultHours: 2.5 },
+    { stepName: 'Sessão 3/4: Caligrafia & Produção Gráfica', subTaskTitle: 'Caligrafia dos nomes de convidados e envio de amostra', defaultHours: 2.5 },
+    { stepName: 'Sessão 4/4: Montagem & Lacre de Cera', subTaskTitle: 'Acabamento final, aplicação de lacre e conferência de lote', defaultHours: 2.5 },
+  ],
+  RETROSPECTIVE: [
+    { stepName: 'Sessão 1/4: Triagem de Assets & Fotos', subTaskTitle: 'Organização do acervo enviado pelo cliente e tratamento de imagens', defaultHours: 2.0 },
+    { stepName: 'Sessão 2/4: Edição de Linha do Tempo & Áudio', subTaskTitle: 'Corte da trilha sonora, decupagem de vídeo e sincronismo', defaultHours: 2.0 },
+    { stepName: 'Sessão 3/4: Efeitos, Títulos & Vinhetas', subTaskTitle: 'Animações de texto, transições e vinheta de encerramento', defaultHours: 2.0 },
+    { stepName: 'Sessão 4/4: Renderização 4K & Teste Projeção', subTaskTitle: 'Render em alta qualidade e checklist de reprodução', defaultHours: 2.0 },
+  ],
+  PARTY: [
+    { stepName: 'Sessão 1/3: Menus & Papelaria de Mesa', subTaskTitle: 'Diagramação de menucards e marcadores de lugar', defaultHours: 2.0 },
+    { stepName: 'Sessão 2/3: Placas de Sinalização & Welcome', subTaskTitle: 'Design do painel de entrada e sinalização da cerimônia', defaultHours: 2.0 },
+    { stepName: 'Sessão 3/3: Kits de Banheiro & Pista', subTaskTitle: 'Identidade dos kits de amenities e havaianas', defaultHours: 2.0 },
+  ]
+};
+
+/**
+ * Retorna as mini-tarefas fracionadas de um entregável.
+ * @param {string} deliverableType - Tipo do entregável ('SAVE_THE_DATE' | 'INVITATION' | 'RETROSPECTIVE' | 'PARTY').
+ * @param {number} totalHours - Total de horas configurado.
+ * @param {string} projectName - Nome do projeto.
+ * @param {string} clientName - Nome do cliente.
+ * @param {string} deadlineStr - Data limite.
+ * @param {boolean} isCritical - Flag de prioridade/criticidade.
+ * @returns {Array<Object>} Lista de mini-tarefas.
  */
 export function getDeliverableMiniTasks(deliverableType, totalHours, projectName, clientName, deadlineStr, isCritical) {
-  if (deliverableType === 'SAVE_THE_DATE') {
-    return [
-      {
-        stepName: 'Sessão 1/3: Concept & Moodboard',
-        subTaskTitle: 'Coleta de referências, conceito visual e paleta de cores',
-        durationHours: 1.5,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 2/3: Design Layout & Tipografia',
-        subTaskTitle: 'Composição gráfica do Save the Date e vetorização',
-        durationHours: 2.0,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 3/3: Fechamento & Disparo',
-        subTaskTitle: 'Ajustes de contraste, exportação em alta e disparo digital',
-        durationHours: 1.5,
-        isCritical
-      }
-    ];
-  }
-
-  if (deliverableType === 'INVITATION') {
-    return [
-      {
-        stepName: 'Sessão 1/4: Ilustração & Monograma',
-        subTaskTitle: 'Vetorização do brasão do casal e arte do envelope',
-        durationHours: 2.5,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 2/4: Diagramação & Faca Especial',
-        subTaskTitle: 'Mapeamento de faca gráfica, sangria e prova de cor',
-        durationHours: 2.5,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 3/4: Caligrafia & Produção Gráfica',
-        subTaskTitle: 'Caligrafia dos nomes de convidados e envio de amostra',
-        durationHours: 2.5,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 4/4: Montagem & Lacre de Cera',
-        subTaskTitle: 'Acabamento final, aplicação de lacre e conferência de lote',
-        durationHours: 2.5,
-        isCritical
-      }
-    ];
-  }
-
-  if (deliverableType === 'RETROSPECTIVE') {
-    return [
-      {
-        stepName: 'Sessão 1/4: Triagem de Assets & Fotos',
-        subTaskTitle: 'Organização do acervo enviado pelo cliente e tratamento de imagens',
-        durationHours: 2.0,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 2/4: Edição de Linha do Tempo & Áudio',
-        subTaskTitle: 'Corte da trilha sonora, decupagem de vídeo e sincronismo',
-        durationHours: 2.0,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 3/4: Efeitos, Títulos & Vinhetas',
-        subTaskTitle: 'Animações de texto, transições e vinheta de encerramento',
-        durationHours: 2.0,
-        isCritical
-      },
-      {
-        stepName: 'Sessão 4/4: Renderização 4K & Teste Projeção',
-        subTaskTitle: 'Render em alta qualidade e checklist de reprodução',
-        durationHours: 2.0,
-        isCritical
-      }
-    ];
-  }
-
-  // FESTA
-  return [
-    {
-      stepName: 'Sessão 1/5: Menus & Papelaria de Mesa',
-      subTaskTitle: 'Diagramação de menucards e marcadores de lugar',
-      durationHours: 2.0,
-      isCritical
-    },
-    {
-      stepName: 'Sessão 2/5: Placas de Sinalização & Welcome',
-      subTaskTitle: 'Design do painel de entrada e sinalização da cerimônia',
-      durationHours: 2.0,
-      isCritical
-    },
-    {
-      stepName: 'Sessão 3/5: Kits de Banheiro & Pista',
-      subTaskTitle: 'Identidade dos kits de amenities e havaianas',
-      durationHours: 2.0,
-      isCritical
-    }
-  ];
+  const templates = DELIVERABLE_MINI_TASK_TEMPLATES[deliverableType] || DELIVERABLE_MINI_TASK_TEMPLATES.PARTY;
+  
+  return templates.map(tmpl => ({
+    stepName: tmpl.stepName,
+    subTaskTitle: tmpl.subTaskTitle,
+    durationHours: tmpl.defaultHours,
+    isCritical
+  }));
 }
 
 /**
- * Gera a agenda de trabalho diária diluindo as MINI-TAREFAS no expediente das 08:00 às 17:00
- * respeitando os turnos da manhã e tarde e a pausa de 15min.
+ * Gera a agenda de trabalho diária distribuindo as mini-tarefas no expediente diário (08h-12h e 13h-17h).
+ * @param {Array<Object>} projects - Lista de projetos do sistema.
+ * @param {Object} settings - Configurações do usuário principal.
+ * @param {string} [targetDateStr=DEFAULT_SYSTEM_TODAY] - Data alvo da visualização.
+ * @returns {Object} Dados da agenda formatados com horários inicial/final e intervalos.
  */
-export function generateDailySchedule(projects, settings, targetDateStr = '2026-09-01') {
-  const config = settings || {
-    morningStart: '08:00',
-    morningEnd: '12:00',
-    afternoonStart: '13:00',
-    afternoonEnd: '17:00',
-    breakMinutes: 15,
-    saveTheDateHours: 5,
-    invitationHours: 10,
-    retrospectiveHours: 8,
-    partyHours: 20
+export function generateDailySchedule(projects = [], settings, targetDateStr = DEFAULT_SYSTEM_TODAY) {
+  const config = {
+    morningStart: settings?.morningStart || '08:00',
+    morningEnd: settings?.morningEnd || '12:00',
+    afternoonStart: settings?.afternoonStart || '13:00',
+    afternoonEnd: settings?.afternoonEnd || '17:00',
+    breakMinutes: settings?.breakMinutes !== undefined ? settings.breakMinutes : 15,
+    saveTheDateHours: settings?.saveTheDateHours || 5,
+    invitationHours: settings?.invitationHours || 10,
+    retrospectiveHours: settings?.retrospectiveHours || 8,
+    partyHours: settings?.partyHours || 20
   };
 
   const allMiniTasks = [];
 
   projects.forEach(project => {
-    const isStdCritical = project.collisionRisk || getDaysDiffFromToday(project.saveTheDateDeadline) <= 15;
-    const isInvCritical = project.daysWaitingClient > 2 || getDaysDiffFromToday(project.invitationDeadline) <= 10;
-    const isRetroCritical = !project.assetsReceived || getDaysDiffFromToday(project.retrospectiveDeadline || project.partyDate) <= 3;
+    if (!project) return;
 
-    // 1. Save the Date mini-tarefas (5h divididas)
-    const stdSubTasks = getDeliverableMiniTasks(
-      'SAVE_THE_DATE',
-      config.saveTheDateHours || 5,
-      project.name,
-      project.client,
-      project.saveTheDateDeadline,
-      isStdCritical
-    );
+    const isStdCritical = Boolean(project.collisionRisk || getDaysDiffFromToday(project.saveTheDateDeadline) <= 15);
+    const isInvCritical = Boolean(project.daysWaitingClient > 2 || getDaysDiffFromToday(project.invitationDeadline) <= 10);
+    const isRetroCritical = Boolean(!project.assetsReceived || getDaysDiffFromToday(project.retrospectiveDeadline || project.partyDate) <= 3);
 
-    stdSubTasks.forEach((sub, idx) => {
-      allMiniTasks.push({
-        id: `${project.id}-std-sub-${idx}`,
-        projectId: project.id,
-        projectName: project.name,
-        client: project.client,
-        type: 'SAVE_THE_DATE',
-        deliverableName: 'Save the Date',
-        stepName: sub.stepName,
-        subTaskTitle: sub.subTaskTitle,
-        durationHours: sub.durationHours,
-        deadline: project.saveTheDateDeadline,
-        isCritical: sub.isCritical,
-        partyDate: project.partyDate
+    // 1. Save the Date
+    if (project.saveTheDateDeadline) {
+      const stdSubTasks = getDeliverableMiniTasks(
+        'SAVE_THE_DATE',
+        config.saveTheDateHours,
+        project.name,
+        project.client,
+        project.saveTheDateDeadline,
+        isStdCritical
+      );
+
+      stdSubTasks.forEach((sub, idx) => {
+        allMiniTasks.push({
+          id: `${project.id}-std-sub-${idx}`,
+          projectId: project.id,
+          projectName: project.name,
+          client: project.client,
+          type: 'SAVE_THE_DATE',
+          deliverableName: 'Save the Date',
+          stepName: sub.stepName,
+          subTaskTitle: sub.subTaskTitle,
+          durationHours: sub.durationHours,
+          deadline: project.saveTheDateDeadline,
+          isCritical: sub.isCritical,
+          partyDate: project.partyDate
+        });
       });
-    });
+    }
 
-    // 2. Convite mini-tarefas (10h divididas)
-    const invSubTasks = getDeliverableMiniTasks(
-      'INVITATION',
-      config.invitationHours || 10,
-      project.name,
-      project.client,
-      project.invitationDeadline,
-      isInvCritical
-    );
+    // 2. Convite Oficial
+    if (project.invitationDeadline) {
+      const invSubTasks = getDeliverableMiniTasks(
+        'INVITATION',
+        config.invitationHours,
+        project.name,
+        project.client,
+        project.invitationDeadline,
+        isInvCritical
+      );
 
-    invSubTasks.forEach((sub, idx) => {
-      allMiniTasks.push({
-        id: `${project.id}-inv-sub-${idx}`,
-        projectId: project.id,
-        projectName: project.name,
-        client: project.client,
-        type: 'INVITATION',
-        deliverableName: 'Convite Oficial',
-        stepName: sub.stepName,
-        subTaskTitle: sub.subTaskTitle,
-        durationHours: sub.durationHours,
-        deadline: project.invitationDeadline,
-        isCritical: sub.isCritical,
-        partyDate: project.partyDate
+      invSubTasks.forEach((sub, idx) => {
+        allMiniTasks.push({
+          id: `${project.id}-inv-sub-${idx}`,
+          projectId: project.id,
+          projectName: project.name,
+          client: project.client,
+          type: 'INVITATION',
+          deliverableName: 'Convite Oficial',
+          stepName: sub.stepName,
+          subTaskTitle: sub.subTaskTitle,
+          durationHours: sub.durationHours,
+          deadline: project.invitationDeadline,
+          isCritical: sub.isCritical,
+          partyDate: project.partyDate
+        });
       });
-    });
+    }
 
-    // 3. Retrospectiva mini-tarefas (8h divididas se a regra estiver ativa e houver prazo)
+    // 3. Retrospectiva
     if (project.hasRetrospective || project.retrospectiveDeadline) {
       const retroSubTasks = getDeliverableMiniTasks(
         'RETROSPECTIVE',
-        config.retrospectiveHours || 8,
+        config.retrospectiveHours,
         project.name,
         project.client,
         project.retrospectiveDeadline || project.partyDate,
@@ -278,30 +282,29 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
           deadline: project.retrospectiveDeadline || project.partyDate,
           isCritical: sub.isCritical,
           partyDate: project.partyDate,
-          assetsReceived: project.assetsReceived !== false
+          assetsReceived: Boolean(project.assetsReceived)
         });
       });
     }
   });
 
-  // ORDENAÇÃO COM PRIORIDADE MATINAL:
+  // Ordenação com prioridade matinal para itens críticos (08:00 AM)
   allMiniTasks.sort((a, b) => {
     if (a.isCritical && !b.isCritical) return -1;
     if (!a.isCritical && b.isCritical) return 1;
     return getDaysDiffFromToday(a.deadline) - getDaysDiffFromToday(b.deadline);
   });
 
-  // Janelas de expediente
-  const morningStartMin = timeToMinutes(config.morningStart || '08:00');
-  const morningEndMin = timeToMinutes(config.morningEnd || '12:00');
-  const afternoonStartMin = timeToMinutes(config.afternoonStart || '13:00');
-  const afternoonEndMin = timeToMinutes(config.afternoonEnd || '17:00');
-  const breakMin = config.breakMinutes !== undefined ? config.breakMinutes : 15;
+  const morningStartMin = timeToMinutes(config.morningStart);
+  const morningEndMin = timeToMinutes(config.morningEnd);
+  const afternoonStartMin = timeToMinutes(config.afternoonStart);
+  const afternoonEndMin = timeToMinutes(config.afternoonEnd);
+  const breakMin = config.breakMinutes;
 
   const scheduledSlots = [];
   let currentPointer = morningStartMin;
 
-  allMiniTasks.forEach((task) => {
+  allMiniTasks.forEach(task => {
     const sessionDurationMin = Math.round(task.durationHours * 60);
 
     if (currentPointer + sessionDurationMin > morningEndMin && currentPointer < afternoonStartMin) {
