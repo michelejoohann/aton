@@ -13,16 +13,21 @@ import {
   PartyPopper,
   Mail,
   Bookmark,
-  Sun
+  Sun,
+  Film,
+  Coffee
 } from 'lucide-react';
-import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils.js';
+import {
+  calculateSaveTheDateDeadline,
+  calculateInvitationDeadline,
+  calculateRetrospectiveDeadline,
+  formatDateBR
+} from '../utils/dateUtils.js';
 
-// Drawer do agente Amozir. O identificador do componente e do arquivo é
-// mantido de propósito: a renomeação desta rodada é de produto, não de código.
 export default function CoringaAgentDrawer({
   isOpen,
   onClose,
-  projects,
+  projects = [],
   settings,
   initialAction,
   onUpdateProjects
@@ -34,6 +39,16 @@ export default function CoringaAgentDrawer({
   const invWeeks = settings?.invitationWeeks || 3;
   const stdHours = settings?.saveTheDateHours || 5;
   const invHours = settings?.invitationHours || 10;
+  const partyHours = settings?.partyHours || 20;
+  const retroHours = settings?.retrospectiveHours || 8;
+  const retroDays = settings?.retrospectiveDaysBeforeParty || 1;
+  const breakMinutes = settings?.breakMinutes || 15;
+  const approvalSla = settings?.approvalSlaHours || 48;
+  const assetSla = settings?.assetDeliverySlaHours || 72;
+  const morningStart = settings?.morningStart || '08:00';
+  const morningEnd = settings?.morningEnd || '12:00';
+  const afternoonStart = settings?.afternoonStart || '13:00';
+  const afternoonEnd = settings?.afternoonEnd || '17:00';
 
   // New Project Simulation State
   const [simPartyDate, setSimPartyDate] = useState('2027-04-20');
@@ -52,32 +67,26 @@ export default function CoringaAgentDrawer({
 
     const stdDeadline = calculateSaveTheDateDeadline(simPartyDate, stdWeeks);
     const invDeadline = calculateInvitationDeadline(simPartyDate, invWeeks);
+    const retroDeadline = calculateRetrospectiveDeadline(simPartyDate, retroDays);
 
     setSimResult({
       partyDate: simPartyDate,
       saveTheDateDeadline: stdDeadline,
       invitationDeadline: invDeadline,
-      recommendation: `CRONOGRAMA CALCULADO COM SUCESSO: Pela regra de prazos retroativos, o Save the Date deverá ser entregue até ${formatDateBR(stdDeadline)} (${stdWeeks} sem / ${stdHours}h de produção) e o Convite Oficial até ${formatDateBR(invDeadline)} (${invWeeks} sem / ${invHours}h de produção). O evento de R$ ${Number(simValue).toLocaleString('pt-BR')} foi aprovado na sua grade na jornada 08h–17h!`
+      retrospectiveDeadline: retroDeadline,
+      recommendation: `CRONOGRAMA CALCULADO: Save the Date até ${formatDateBR(stdDeadline)} (${stdWeeks} sem / ${stdHours}h de produção), Convite Oficial até ${formatDateBR(invDeadline)} (${invWeeks} sem / ${invHours}h de produção) e Retrospectiva até ${formatDateBR(retroDeadline)} (${retroDays}d antes / ${retroHours}h). Evento de R$ ${Number(simValue).toLocaleString('pt-BR')} aprovado na sua jornada das ${morningStart}–${afternoonEnd}!`
     });
   };
 
   const handleApplyReschedule = () => {
-    // Reorganize collision projects automatically
+    // Reorganiza projetos com colisão
     const updated = projects.map(p => {
-      if (p.id === 'proj-2') {
+      if (p.collisionRisk) {
         return {
           ...p,
           collisionRisk: false,
           riskMessage: null,
-          lastUpdate: 'Prazos de aprovação estendidos com segurança de 5 dias'
-        };
-      }
-      if (p.id === 'proj-7') {
-        return {
-          ...p,
-          collisionRisk: false,
-          riskMessage: null,
-          lastUpdate: 'Ajuste de fila de vetorização do batizado realizado'
+          lastUpdate: `Prazos de produção reorganizados com sucesso pelo Amozir (${stdWeeks}w / ${invWeeks}w respeitados)`
         };
       }
       return p;
@@ -107,9 +116,6 @@ export default function CoringaAgentDrawer({
 
         {/* Drawer Header */}
         <div className="relative overflow-hidden p-5 border-b border-line-strong bg-surface-2 flex items-start justify-between gap-3">
-          {/* Motivo de rizoma: as conexões que sustentam o eixo, sob a
-              superfície. Aparece só aqui, nunca como padrão de página, e só em
-              tinta de linha — o acento fica reservado a ação, seleção e estado. */}
           <svg
             aria-hidden="true"
             viewBox="0 0 200 120"
@@ -142,7 +148,9 @@ export default function CoringaAgentDrawer({
                   Gerente de prazos
                 </span>
               </h3>
-              <p className="text-caption text-ink-muted">Regra: Save the Date (6m) • Convite (3m) • Festa</p>
+              <p className="text-caption text-ink-muted">
+                Regras: Std ({stdWeeks}w/{stdHours}h) • Convite ({invWeeks}w/{invHours}h) • Festa ({partyHours}h)
+              </p>
             </div>
           </div>
 
@@ -159,7 +167,7 @@ export default function CoringaAgentDrawer({
         <div className="flex border-b border-line bg-surface-2 p-1.5 gap-1">
           <button onClick={() => setActiveTab('rules')} className={tabClass('rules')}>
             <Clock className="w-4 h-4" aria-hidden="true" />
-            Regra 6m / 3m
+            Regras ({stdWeeks}w / {invWeeks}w)
           </button>
 
           <button onClick={() => setActiveTab('reschedule')} className={tabClass('reschedule')}>
@@ -176,40 +184,76 @@ export default function CoringaAgentDrawer({
         {/* Drawer Content Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
-          {/* TAB 1: REGRA AUTOMÁTICA DE PRAZOS (6m / 3m / FESTA) */}
+          {/* TAB 1: REGRAS PARAMETRIZADAS DO USUÁRIO */}
           {activeTab === 'rules' && (
             <div className="space-y-4">
-              <div className="bg-accent-soft border border-line rounded-sm p-4">
-                <h4 className="text-label font-semibold text-ink mb-1.5 flex items-center gap-2">
+              <div className="bg-accent-soft border border-line rounded-sm p-4 space-y-3">
+                <h4 className="text-label font-semibold text-ink flex items-center gap-2">
                   <Sun className="w-4 h-4 text-accent" aria-hidden="true" />
-                  Regras de retrocálculo dos entregáveis
+                  Regras de retrocálculo configuradas no painel
                 </h4>
                 <p className="text-label text-ink-muted">
-                  O Amozir monitora automaticamente o tempo restante para cada festa e impõe os prazos limites:
+                  O Amozir monitora o tempo restante para cada festa e impõe os prazos e jornadas configuradas:
                 </p>
-                <ul className="text-label text-ink-muted mt-2 space-y-1.5">
-                  <li className="flex items-start gap-2">
-                    <Bookmark className="w-4 h-4 shrink-0 mt-0.5 text-ink-subtle" aria-hidden="true" />
-                    <span><strong className="font-semibold text-ink">Save the Date:</strong> impreterivelmente 6 meses antes da Festa</span>
+
+                <ul className="text-label text-ink-muted space-y-2">
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
+                    <Bookmark className="w-4 h-4 shrink-0 mt-0.5 text-accent" aria-hidden="true" />
+                    <div>
+                      <strong className="font-semibold text-ink">Save the Date:</strong>{' '}
+                      <span>{stdWeeks} semanas antes da Festa ({stdHours}h de produção)</span>
+                    </div>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <Mail className="w-4 h-4 shrink-0 mt-0.5 text-ink-subtle" aria-hidden="true" />
-                    <span><strong className="font-semibold text-ink">Convite Oficial:</strong> impreterivelmente 3 meses antes da Festa</span>
+
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
+                    <Mail className="w-4 h-4 shrink-0 mt-0.5 text-purple-500" aria-hidden="true" />
+                    <div>
+                      <strong className="font-semibold text-ink">Convite Oficial:</strong>{' '}
+                      <span>{invWeeks} semanas antes da Festa ({invHours}h de produção)</span>
+                    </div>
                   </li>
-                  <li className="flex items-start gap-2">
+
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
+                    <Film className="w-4 h-4 shrink-0 mt-0.5 text-cyan-500" aria-hidden="true" />
+                    <div>
+                      <strong className="font-semibold text-ink">Retrospectiva em Vídeo:</strong>{' '}
+                      <span>{retroDays} dia antes da Festa ({retroHours}h de produção • SLA assets {assetSla}h)</span>
+                    </div>
+                  </li>
+
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
                     <PartyPopper className="w-4 h-4 shrink-0 mt-0.5 text-accent" aria-hidden="true" />
-                    <span><strong className="font-semibold text-ink">Festa / Evento:</strong> prazo final de entrega física</span>
+                    <div>
+                      <strong className="font-semibold text-ink">Festa / Evento Final:</strong>{' '}
+                      <span>Data da festa ({partyHours}h de produção)</span>
+                    </div>
+                  </li>
+
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
+                    <Coffee className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" aria-hidden="true" />
+                    <div>
+                      <strong className="font-semibold text-ink">Jornada &amp; Pausas:</strong>{' '}
+                      <span>{morningStart}–{morningEnd} e {afternoonStart}–{afternoonEnd} com {breakMinutes}min de intervalo</span>
+                    </div>
+                  </li>
+
+                  <li className="flex items-start gap-2 bg-surface p-2.5 rounded-xs border border-line">
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />
+                    <div>
+                      <strong className="font-semibold text-ink">SLA de Aprovação do Cliente:</strong>{' '}
+                      <span>{approvalSla} horas úteis para retorno</span>
+                    </div>
                   </li>
                 </ul>
               </div>
 
-              {/* Status Breakdown of the 9 Active Event Projects */}
+              {/* Status Breakdown of Active Event Projects */}
               <div className="space-y-2">
                 <h5 className="text-label font-semibold text-ink-muted pb-2 border-b border-line">
-                  Projetos com alerta de regra
+                  Projetos com alertas de regras e prazos
                 </h5>
 
-                {projects.filter(p => p.collisionRisk).map(p => (
+                {projects.filter(p => p.collisionRisk || p.daysWaitingClient > 2).map(p => (
                   <div key={p.id} className="p-3 bg-urgent-surface border border-urgent-border rounded-sm space-y-1.5">
                     <div className="flex flex-wrap items-center justify-between gap-2 font-semibold text-on-urgent text-label">
                       <span className="flex items-center gap-1.5">
@@ -220,7 +264,7 @@ export default function CoringaAgentDrawer({
                         Festa: {formatDateBR(p.partyDate)}
                       </span>
                     </div>
-                    <p className="text-caption text-ink-muted">{p.riskMessage}</p>
+                    <p className="text-caption text-ink-muted">{p.riskMessage || `Aguardando aprovação há ${p.daysWaitingClient} dias`}</p>
                   </div>
                 ))}
               </div>
@@ -236,7 +280,7 @@ export default function CoringaAgentDrawer({
                   Diagnóstico de sobrecarga de entregas
                 </h4>
                 <p className="text-label text-ink-muted">
-                  Os convites de <strong className="font-semibold text-ink">15 Anos Beatriz</strong> (prazo 3m) e o batizado da <strong className="font-semibold text-ink">Família Albuquerque</strong> acumularam na mesma semana de Setembro.
+                  O Amozir monitora os gargalos de aprovação e os prazos de {stdWeeks}w (Save the Date) e {invWeeks}w (Convite) na jornada de 8h diárias.
                 </p>
               </div>
 
@@ -248,16 +292,16 @@ export default function CoringaAgentDrawer({
                 <ol className="text-label text-ink-muted space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="font-semibold text-accent tabular-nums">1.</span>
-                    <span>Espaçar a aprovação de layout do Convite de 15 Anos em 3 dias mantendo a folga de 3 meses.</span>
+                    <span>Espaçar aprovações pendentes mantendo a antecedência mínima de {invWeeks} semanas antes de cada festa.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-semibold text-accent tabular-nums">2.</span>
-                    <span>Resultado: <strong className="font-semibold text-ink">Regra 6m / 3m / Festa 100% respeitada</strong> e sem colisão de produção.</span>
+                    <span>Distribuir as sessões de produção nas janelas das {morningStart}–{morningEnd} e {afternoonStart}–{afternoonEnd} com {breakMinutes}min de pausa.</span>
                   </li>
                 </ol>
 
                 {rescheduleSuccess && (
-                  <div className="p-3 bg-success-surface border border-success-border rounded-sm text-on-success text-label font-semibold flex items-center gap-2">
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-sm text-emerald-700 text-label font-semibold flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                     Prazos reorganizados com sucesso!
                   </div>
@@ -274,7 +318,7 @@ export default function CoringaAgentDrawer({
             </div>
           )}
 
-          {/* TAB 3: SIMULAR NOVO EVENTO (COM REGRA AUTOMÁTICA 6M / 3M) */}
+          {/* TAB 3: SIMULAR NOVO EVENTO */}
           {activeTab === 'capacity' && (
             <div className="space-y-4">
               <div className="bg-surface-2 border border-line rounded-sm p-4">
@@ -283,7 +327,7 @@ export default function CoringaAgentDrawer({
                   Calculadora de retro-prazos do novo evento
                 </h4>
                 <p className="text-label text-ink-muted">
-                  Digite a <strong className="font-semibold text-ink">Data da Festa</strong>. O Amozir calculará instantaneamente a data limite do Save the Date (-6m) e do Convite (-3m).
+                  Digite a <strong className="font-semibold text-ink">Data da Festa</strong>. O Amozir calculará instantaneamente a data limite do Save the Date (-{stdWeeks} semanas) e do Convite (-{invWeeks} semanas).
                 </p>
               </div>
 
@@ -344,20 +388,24 @@ export default function CoringaAgentDrawer({
               </form>
 
               {simResult && (
-                <div className="p-4 bg-success-surface border border-success-border rounded-sm space-y-2.5">
-                  <p className="text-label font-semibold text-on-success flex items-start gap-2">
-                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-sm space-y-2.5">
+                  <p className="text-label font-semibold text-emerald-800 flex items-start gap-2">
+                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />
                     <span>{simResult.recommendation}</span>
                   </p>
 
                   <div className="bg-surface p-2.5 rounded-sm border border-line space-y-1 text-caption">
                     <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Bookmark className="w-3.5 h-3.5 text-ink-subtle" aria-hidden="true" />
-                      <span>Save the Date: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.saveTheDateDeadline)}</span> (-6 meses)</span>
+                      <Bookmark className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
+                      <span>Save the Date: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.saveTheDateDeadline)}</span> (-{stdWeeks} semanas)</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Mail className="w-3.5 h-3.5 text-ink-subtle" aria-hidden="true" />
-                      <span>Convite Oficial: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.invitationDeadline)}</span> (-3 meses)</span>
+                      <Mail className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
+                      <span>Convite Oficial: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.invitationDeadline)}</span> (-{invWeeks} semanas)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-ink-muted">
+                      <Film className="w-3.5 h-3.5 text-cyan-500" aria-hidden="true" />
+                      <span>Retrospectiva: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.retrospectiveDeadline)}</span> (-{retroDays} dia)</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-ink-muted">
                       <PartyPopper className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
