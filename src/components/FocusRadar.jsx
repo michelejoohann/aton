@@ -3,7 +3,7 @@ import { Clock, ArrowRight, Bookmark, Mail, PartyPopper, Sun, ChevronDown, Chevr
 import { formatDateBR, getDaysDiffFromToday } from '../utils/dateUtils.js';
 
 export default function FocusRadar({ projects = [], settings, onSelectProject, onOpenAgentAction }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [filterRisk, setFilterRisk] = useState('ALL'); // 'ALL' | 'CRITICAL'
 
   const stdWeeks = settings?.saveTheDateWeeks || 6;

@@ -16,7 +16,7 @@ import { Sun } from 'lucide-react';
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
   const [persona] = useState(PERSONA_CAMILA);
-  const [activeView, setActiveView] = useState('pipeline'); // 'pipeline' | 'calendar'
+  const [activeView, setActiveView] = useState('calendar'); // 'calendar' | 'pipeline'
 
   // User Settings State with localStorage persistence
   const [userSettings, setUserSettings] = useState(() => {

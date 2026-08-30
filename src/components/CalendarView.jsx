@@ -19,7 +19,7 @@ import { formatDateBR, generateDailySchedule, getDaysDiffFromToday, DEFAULT_SYST
 export default function CalendarView({ projects, settings, onSelectProject }) {
   const [currentDate, setCurrentDate] = useState(new Date('2026-09-01T00:00:00'));
   const [filterType, setFilterType] = useState('ALL');
-  const [viewMode, setViewMode] = useState('MONTH');
+  const [viewMode, setViewMode] = useState('DAILY_SCHEDULE');
   const [selectedDay, setSelectedDay] = useState('2026-09-01');
 
   const stdWeeks = settings?.saveTheDateWeeks || 6;
