@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { X, Calendar, CheckSquare, User, PartyPopper, Mail, Bookmark, Sun, FileText, DollarSign, Clock, AlertTriangle, MessageSquare, Check, Copy } from 'lucide-react';
+import { X, Calendar, CheckSquare, User, PartyPopper, Mail, Bookmark, Sun, FileText, DollarSign, Clock, AlertTriangle, MessageSquare, Check, Copy, Film, Image, CheckCircle2 } from 'lucide-react';
 import { STAGES } from '../data/mockData';
-import { formatDateBR } from '../utils/dateUtils';
+import { formatDateBR, calculateRetrospectiveDeadline } from '../utils/dateUtils';
 
 export default function ProjectDetailModal({ project, onClose, settings }) {
   const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedAssetMessage, setCopiedAssetMessage] = useState(false);
+  const [assetsReceivedState, setAssetsReceivedState] = useState(project?.assetsReceived || false);
 
   if (!project) return null;
 
   const approvalSlaHours = settings?.approvalSlaHours || 48;
+  const assetSlaHours = settings?.assetDeliverySlaHours || 72;
+  const retroHours = settings?.retrospectiveHours || 8;
+  const retroDaysBefore = settings?.retrospectiveDaysBeforeParty || 1;
+
   const currentStageInfo = STAGES.find(s => s.id === project.stage);
 
   // Cálculo de estouro de SLA (em horas)
@@ -17,16 +23,29 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
   const isSlaExceeded = isWaitingApproval && waitingHours > approvalSlaHours;
   const overdueHours = isSlaExceeded ? waitingHours - approvalSlaHours : 0;
 
-  // Mensagem amigável de cobrança de SLA 48h
+  const retrospectiveDate = project.retrospectiveDeadline || calculateRetrospectiveDeadline(project.partyDate, retroDaysBefore);
+  const hasRetrospective = project.hasRetrospective || project.category === '15 Anos' || project.category === 'Casamento' || project.category === 'Bodas';
+
+  // Mensagem amigável de cobrança de SLA 48h (Aprovação de Arte)
   const generateCobrançaText = () => {
     return `Olá ${project.client}, tudo bem? 😊 Passando para avisar que a prova da arte do projeto "${project.name}" foi enviada para sua aprovação. Para garantirmos o prazo limite de produção e envio sem correria, precisamos da sua validação ou ajustes em até ${approvalSlaHours}h. Qualquer dúvida estou à disposição para finalizar! 🎨✨`;
   };
 
+  // Mensagem amigável de cobrança dos Assets (Fotos/Vídeos) para Retrospectiva
+  const generateAssetCobrançaText = () => {
+    return `Olá ${project.client}! 🎬 Para iniciarmos a produção da Retrospectiva em Vídeo de 8h para a festa (${formatDateBR(project.partyDate)}), precisamos receber o acervo de fotos e vídeos da infância/família. Como a entrega é feita 1 dia antes da festa (${formatDateBR(retrospectiveDate)}), solicitamos o envio dos materiais em até ${assetSlaHours}h. Pode nos enviar por aqui ou Google Drive? Obrigado! ✨📸`;
+  };
+
   const handleCopyMessage = () => {
-    const text = generateCobrançaText();
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(generateCobrançaText());
     setCopiedMessage(true);
     setTimeout(() => setCopiedMessage(false), 2500);
+  };
+
+  const handleCopyAssetMessage = () => {
+    navigator.clipboard.writeText(generateAssetCobrançaText());
+    setCopiedAssetMessage(true);
+    setTimeout(() => setCopiedAssetMessage(false), 2500);
   };
 
   return (
@@ -47,6 +66,12 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
                 <span className="inline-flex items-center gap-1 text-caption font-semibold uppercase text-on-warning bg-warning-surface border border-warning-border px-2 py-0.5 rounded-xs">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   SLA 48h Estourado (+{overdueHours}h)
+                </span>
+              )}
+              {hasRetrospective && !assetsReceivedState && (
+                <span className="inline-flex items-center gap-1 text-caption font-semibold uppercase text-accent bg-accent-soft border border-line px-2 py-0.5 rounded-xs">
+                  <Image className="w-3.5 h-3.5" />
+                  Fotos/Vídeos Pendentes ({assetSlaHours}h SLA)
                 </span>
               )}
             </div>
@@ -79,6 +104,74 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
+
+        {/* REGRA DA RETROSPECTIVA E PRÉ-CONDIÇÃO DOS ASSETS DO CLIENTE */}
+        {hasRetrospective && (
+          <div className={`p-4 rounded-md border space-y-3 ${
+            !assetsReceivedState ? 'bg-accent-soft/40 border-accent/40' : 'bg-surface-2 border-line'
+          }`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-label font-semibold text-ink flex items-center gap-2">
+                <Film className="w-4 h-4 text-accent" />
+                Regra da Retrospectiva ({retroHours}h de produção • Entrega 1 dia antes da festa)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAssetsReceivedState(!assetsReceivedState)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xs text-caption font-semibold transition-colors ${
+                  assetsReceivedState
+                    ? 'bg-success-surface text-on-success border border-success-border'
+                    : 'bg-warning-surface text-on-warning border border-warning-border'
+                }`}
+              >
+                {assetsReceivedState ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Assets Recebidos — Produção Liberada</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Assets Pendentes — Clique para confirmar recebimento</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-caption text-ink-muted">
+              {assetsReceivedState
+                ? `Fotos e vídeos recebidos! A retrospectiva de ${retroHours}h está agendada para ser entregue em ${formatDateBR(retrospectiveDate)} (1 dia antes da festa).`
+                : `Pré-condição obrigatória: A produção da retrospectiva de ${retroHours}h exige o recebimento prévio das fotos/vídeos. SLA limite do cliente: ${assetSlaHours}h.`}
+            </p>
+
+            {/* Cobrança de Assets */}
+            {!assetsReceivedState && (
+              <div className="pt-2 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <span className="text-caption font-semibold text-ink flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-accent" />
+                  Cobrança de Fotos/Vídeos no WhatsApp (SLA {assetSlaHours}h)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyAssetMessage}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-caption font-semibold transition-colors"
+                >
+                  {copiedAssetMessage ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar Lembrete de Fotos</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* REGRA DE NEGÓCIO & SLA DE ACEITE DO CLIENTE FINAL (48H) */}
         <div className={`p-4 rounded-md border space-y-3 ${
@@ -121,7 +214,7 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
                 {copiedMessage ? (
                   <>
                     <Check className="w-3.5 h-3.5" />
-                    <span>Copiado para o Transferidor!</span>
+                    <span>Copiado!</span>
                   </>
                 ) : (
                   <>
@@ -141,42 +234,46 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
             Cronograma dos entregáveis do contrato
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-caption">
 
             {/* 1. Save the Date */}
-            <div className="bg-surface p-3 rounded-sm border border-line space-y-1">
-              <div className="flex items-center justify-between gap-2 text-ink font-semibold text-label">
-                <span className="flex items-center gap-1.5">
-                  <Bookmark className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
-                  Save the Date
-                </span>
-              </div>
-              <p className="text-caption text-ink-muted">Prazo limite:</p>
-              <strong className="block text-section-title font-semibold text-ink tabular-nums">{formatDateBR(project.saveTheDateDeadline)}</strong>
+            <div className="bg-surface p-2.5 rounded-sm border border-line space-y-1">
+              <span className="flex items-center gap-1 font-semibold text-ink">
+                <Bookmark className="w-3.5 h-3.5 text-ink-subtle" />
+                Save the Date
+              </span>
+              <span className="block text-ink-muted">6w semanas</span>
+              <strong className="block font-semibold text-ink tabular-nums">{formatDateBR(project.saveTheDateDeadline)}</strong>
             </div>
 
             {/* 2. Convite */}
-            <div className="bg-surface p-3 rounded-sm border border-line space-y-1">
-              <div className="flex items-center justify-between gap-2 text-ink font-semibold text-label">
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
-                  Convite Oficial
-                </span>
-              </div>
-              <p className="text-caption text-ink-muted">Prazo limite:</p>
-              <strong className="block text-section-title font-semibold text-ink tabular-nums">{formatDateBR(project.invitationDeadline)}</strong>
+            <div className="bg-surface p-2.5 rounded-sm border border-line space-y-1">
+              <span className="flex items-center gap-1 font-semibold text-ink">
+                <Mail className="w-3.5 h-3.5 text-ink-subtle" />
+                Convite Oficial
+              </span>
+              <span className="block text-ink-muted">3w semanas</span>
+              <strong className="block font-semibold text-ink tabular-nums">{formatDateBR(project.invitationDeadline)}</strong>
             </div>
 
-            {/* 3. Festa */}
-            <div className="bg-accent-soft p-3 rounded-sm border border-line-strong space-y-1">
-              <div className="flex items-center justify-between gap-2 text-ink font-semibold text-label">
-                <span className="flex items-center gap-1.5">
-                  <PartyPopper className="w-4 h-4 text-accent" aria-hidden="true" />
-                  Data da Festa
-                </span>
-              </div>
-              <p className="text-caption text-ink-muted">Dia do Evento:</p>
-              <strong className="block text-section-title font-semibold text-accent tabular-nums">{formatDateBR(project.partyDate)}</strong>
+            {/* 3. Retrospectiva (se ativa) */}
+            <div className="bg-surface p-2.5 rounded-sm border border-line space-y-1">
+              <span className="flex items-center gap-1 font-semibold text-ink">
+                <Film className="w-3.5 h-3.5 text-accent" />
+                Retrospectiva
+              </span>
+              <span className="block text-ink-muted">1 dia antes ({retroHours}h)</span>
+              <strong className="block font-semibold text-ink tabular-nums">{formatDateBR(retrospectiveDate)}</strong>
+            </div>
+
+            {/* 4. Festa */}
+            <div className="bg-accent-soft p-2.5 rounded-sm border border-line-strong space-y-1">
+              <span className="flex items-center gap-1 font-semibold text-accent">
+                <PartyPopper className="w-3.5 h-3.5 text-accent" />
+                Festa Final
+              </span>
+              <span className="block text-ink-muted">Dia da Festa</span>
+              <strong className="block font-semibold text-accent tabular-nums">{formatDateBR(project.partyDate)}</strong>
             </div>
 
           </div>
@@ -201,7 +298,7 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
                 className={`flex flex-wrap items-center justify-between gap-2 p-3 rounded-sm border ${
                   item.completed
                     ? 'bg-surface-2 border-line text-ink-muted'
-                    : item.isExtra
+                    : item.isRetrospective
                     ? 'bg-accent-soft/30 border-accent/40 text-ink'
                     : 'bg-surface border-line text-ink'
                 }`}
@@ -236,9 +333,9 @@ export default function ProjectDetailModal({ project, onClose, settings }) {
               Orientação do Amozir
             </strong>
             <p className="text-label text-ink-muted">
-              {isSlaExceeded
-                ? `O cliente final excedeu o SLA de resposta de ${approvalSlaHours}h. Utilize o botão acima para enviar o lembrete de cobrança e evitar travamento da caligrafia e impressão.`
-                : `Mantenha o acompanhamento do SLA de ${approvalSlaHours}h. O cronograma retroativo garante a entrega sem pânico na véspera da festa.`}
+              {hasRetrospective && !assetsReceivedState
+                ? `Atenção: A Retrospectiva de ${retroHours}h precisa ser entregue em ${formatDateBR(retrospectiveDate)} (1 dia antes da festa), mas as fotos do cliente continuam pendentes. Envie a cobrança do SLA de ${assetSlaHours}h!`
+                : `Tudo sob controle! O cronograma retroativo respeita as janelas da jornada de trabalho (08h-17h) e pausas de 15min.`}
             </p>
           </div>
         </div>

@@ -9,6 +9,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, onOpenC
   const [value, setValue] = useState(5500);
   const [contractDate, setContractDate] = useState('2026-09-01');
   const [partyDate, setPartyDate] = useState('2027-04-15');
+  const [hasRetrospective, setHasRetrospective] = useState(true);
 
   if (!isOpen) return null;
 
@@ -16,14 +17,49 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, onOpenC
   const invWeeks = settings?.invitationWeeks || 3;
   const stdHours = settings?.saveTheDateHours || 5;
   const invHours = settings?.invitationHours || 10;
+  const retroHours = settings?.retrospectiveHours || 8;
   const partyHours = settings?.partyHours || 20;
 
   const saveTheDateDeadline = calculateSaveTheDateDeadline(partyDate, stdWeeks);
   const invitationDeadline = calculateInvitationDeadline(partyDate, invWeeks);
+  const retrospectiveDeadline = calculateSaveTheDateDeadline(partyDate, 0); // 1 dia antes ajustado
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name || !client || !partyDate) return;
+
+    const baseDeliverables = [
+      { id: `d-${Date.now()}-1`, title: 'Save the Date', rule: `${stdWeeks} semanas antes`, requiredHours: stdHours, deadline: saveTheDateDeadline, status: 'in_progress', completed: false },
+      { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: `${invWeeks} semanas antes`, requiredHours: invHours, deadline: invitationDeadline, status: 'pending', completed: false },
+    ];
+
+    if (hasRetrospective) {
+      const retroDate = new Date(partyDate + 'T00:00:00');
+      retroDate.setDate(retroDate.getDate() - 1);
+      const retroStr = retroDate.toISOString().split('T')[0];
+
+      baseDeliverables.push({
+        id: `d-${Date.now()}-retro`,
+        title: 'Retrospectiva em Vídeo/Fotos',
+        rule: '1 dia antes da festa',
+        requiredHours: retroHours,
+        deadline: retroStr,
+        status: 'pending',
+        completed: false,
+        isRetrospective: true,
+        requiresAssets: true
+      });
+    }
+
+    baseDeliverables.push({
+      id: `d-${Date.now()}-3`,
+      title: 'Festa / Evento',
+      rule: 'Data da Festa',
+      requiredHours: partyHours,
+      deadline: partyDate,
+      status: 'pending',
+      completed: false
+    });
 
     const newProj = {
       id: `proj-${Date.now()}`,
@@ -35,17 +71,16 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, onOpenC
       partyDate,
       saveTheDateDeadline,
       invitationDeadline,
+      retrospectiveDeadline: partyDate,
+      hasRetrospective,
+      assetsReceived: false,
       deadline: partyDate,
       daysWaitingClient: 0,
       collisionRisk: false,
       riskMessage: null,
       progress: 10,
       category,
-      deliverables: [
-        { id: `d-${Date.now()}-1`, title: 'Save the Date', rule: `${stdWeeks} semanas antes`, requiredHours: stdHours, deadline: saveTheDateDeadline, status: 'in_progress', completed: false },
-        { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: `${invWeeks} semanas antes`, requiredHours: invHours, deadline: invitationDeadline, status: 'pending', completed: false },
-        { id: `d-${Date.now()}-3`, title: 'Festa / Evento', rule: 'Data da Festa', requiredHours: partyHours, deadline: partyDate, status: 'pending', completed: false }
-      ],
+      deliverables: baseDeliverables,
       lastUpdate: `Contrato assinado em ${formatDateBR(contractDate || '2026-09-01')}`
     };
 

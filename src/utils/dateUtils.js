@@ -21,6 +21,16 @@ export function calculateInvitationDeadline(partyDateStr, weeks = 3) {
 }
 
 /**
+ * Calcula o prazo da Retrospectiva em dias antes da Festa (Padrão: 1 dia antes)
+ */
+export function calculateRetrospectiveDeadline(partyDateStr, daysBefore = 1) {
+  if (!partyDateStr) return '';
+  const date = new Date(partyDateStr + 'T00:00:00');
+  date.setDate(date.getDate() - daysBefore);
+  return date.toISOString().split('T')[0];
+}
+
+/**
  * Formata data no padrão brasileiro (DD/MM/AAAA)
  */
 export function formatDateBR(dateStr) {
@@ -113,6 +123,35 @@ export function getDeliverableMiniTasks(deliverableType, totalHours, projectName
     ];
   }
 
+  if (deliverableType === 'RETROSPECTIVE') {
+    return [
+      {
+        stepName: 'Sessão 1/4: Triagem de Assets & Fotos',
+        subTaskTitle: 'Organização do acervo enviado pelo cliente e tratamento de imagens',
+        durationHours: 2.0,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 2/4: Edição de Linha do Tempo & Áudio',
+        subTaskTitle: 'Corte da trilha sonora, decupagem de vídeo e sincronismo',
+        durationHours: 2.0,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 3/4: Efeitos, Títulos & Vinhetas',
+        subTaskTitle: 'Animações de texto, transições e vinheta de encerramento',
+        durationHours: 2.0,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 4/4: Renderização 4K & Teste Projeção',
+        subTaskTitle: 'Render em alta qualidade e checklist de reprodução',
+        durationHours: 2.0,
+        isCritical
+      }
+    ];
+  }
+
   // FESTA
   return [
     {
@@ -149,6 +188,7 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
     breakMinutes: 15,
     saveTheDateHours: 5,
     invitationHours: 10,
+    retrospectiveHours: 8,
     partyHours: 20
   };
 
@@ -157,6 +197,7 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
   projects.forEach(project => {
     const isStdCritical = project.collisionRisk || getDaysDiffFromToday(project.saveTheDateDeadline) <= 15;
     const isInvCritical = project.daysWaitingClient > 2 || getDaysDiffFromToday(project.invitationDeadline) <= 10;
+    const isRetroCritical = !project.assetsReceived || getDaysDiffFromToday(project.retrospectiveDeadline || project.partyDate) <= 3;
 
     // 1. Save the Date mini-tarefas (5h divididas)
     const stdSubTasks = getDeliverableMiniTasks(
@@ -211,10 +252,39 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
         partyDate: project.partyDate
       });
     });
+
+    // 3. Retrospectiva mini-tarefas (8h divididas se a regra estiver ativa e houver prazo)
+    if (project.hasRetrospective || project.retrospectiveDeadline) {
+      const retroSubTasks = getDeliverableMiniTasks(
+        'RETROSPECTIVE',
+        config.retrospectiveHours || 8,
+        project.name,
+        project.client,
+        project.retrospectiveDeadline || project.partyDate,
+        isRetroCritical
+      );
+
+      retroSubTasks.forEach((sub, idx) => {
+        allMiniTasks.push({
+          id: `${project.id}-retro-sub-${idx}`,
+          projectId: project.id,
+          projectName: project.name,
+          client: project.client,
+          type: 'RETROSPECTIVE',
+          deliverableName: 'Retrospectiva (Vídeo/Fotos)',
+          stepName: sub.stepName,
+          subTaskTitle: sub.subTaskTitle,
+          durationHours: sub.durationHours,
+          deadline: project.retrospectiveDeadline || project.partyDate,
+          isCritical: sub.isCritical,
+          partyDate: project.partyDate,
+          assetsReceived: project.assetsReceived !== false
+        });
+      });
+    }
   });
 
   // ORDENAÇÃO COM PRIORIDADE MATINAL:
-  // Mini-tarefas de projetos críticos entram PRIMEIRO na agenda da manhã (08:00)
   allMiniTasks.sort((a, b) => {
     if (a.isCritical && !b.isCritical) return -1;
     if (!a.isCritical && b.isCritical) return 1;
@@ -234,12 +304,10 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
   allMiniTasks.forEach((task) => {
     const sessionDurationMin = Math.round(task.durationHours * 60);
 
-    // Se ultrapassar o turno da manhã (12:00), pula para o turno da tarde (13:00)
     if (currentPointer + sessionDurationMin > morningEndMin && currentPointer < afternoonStartMin) {
       currentPointer = afternoonStartMin;
     }
 
-    // Se já passou das 17:00, encerra o expediente do dia
     if (currentPointer >= afternoonEndMin) return;
 
     const startStr = minutesToTime(currentPointer);
@@ -254,7 +322,6 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
       isMorningPriority: currentPointer < morningEndMin,
     });
 
-    // Avança ponteiro com a PAUSA DE 15 MINUTOS configurada
     currentPointer = endMin + breakMin;
 
     if (currentPointer >= morningEndMin && currentPointer < afternoonStartMin) {

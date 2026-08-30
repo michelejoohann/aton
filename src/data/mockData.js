@@ -93,10 +93,14 @@ export const INITIAL_PROJECTS = [
     riskMessage: 'Arte do Convite (prazo 3w) aguardando aprovação da mãe há 4 dias',
     progress: 70,
     category: '15 Anos',
+    hasRetrospective: true,
+    assetsReceived: false,
+    retrospectiveDeadline: '2026-09-29', // 1 dia antes de 30/09
     deliverables: [
       { id: 'd1', title: 'Save the Date', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-09-30', 6), status: 'completed', completed: true },
       { id: 'd2', title: 'Convite Oficial Luxo', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-09-30', 3), status: 'waiting_approval', completed: false },
-      { id: 'd3', title: 'Kits da Festa e Pista de Dança', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-09-30', status: 'pending', completed: false }
+      { id: 'd3', title: 'Retrospectiva em Vídeo (Fotos Infância & Família)', rule: '1 dia antes da festa', requiredHours: 8, deadline: '2026-09-29', status: 'pending', completed: false, isRetrospective: true, requiresAssets: true },
+      { id: 'd4', title: 'Kits da Festa e Pista de Dança', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-09-30', status: 'pending', completed: false }
     ],
     lastUpdate: 'Aguardando aprovação do layout do Convite'
   },

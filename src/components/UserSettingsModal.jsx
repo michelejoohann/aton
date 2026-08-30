@@ -11,8 +11,14 @@ export const DEFAULT_SETTINGS = {
   invitationHours: 10,
   partyHours: 20,
 
-  // SLA de Aceite do Cliente Final (em horas)
+  // Regra da Retrospectiva (8h / 1 dia antes da festa)
+  enableRetrospectiveRule: true,
+  retrospectiveHours: 8,
+  retrospectiveDaysBeforeParty: 1,
+
+  // SLAs de Resposta e Envio
   approvalSlaHours: 48,
+  assetDeliverySlaHours: 72,
 
   // Jornada de Trabalho do Usuário Principal
   morningStart: '08:00',
@@ -182,6 +188,24 @@ export default function UserSettingsModal({ isOpen, onClose, settings, onSaveSet
 
               <div>
                 <label className="block text-caption font-medium text-ink mb-1.5">
+                  Retrospectiva (Vídeo/Fotos)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.retrospectiveHours || 8}
+                    onChange={(e) => handleChange('retrospectiveHours', Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-sm border border-line-control bg-surface text-ink font-semibold focus:outline-none focus:border-accent"
+                    required
+                  />
+                  <span className="text-caption text-ink-muted font-medium">horas</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-caption font-medium text-ink mb-1.5">
                   Festa / Evento
                 </label>
                 <div className="flex items-center gap-2">
@@ -199,28 +223,50 @@ export default function UserSettingsModal({ isOpen, onClose, settings, onSaveSet
               </div>
             </div>
 
-            {/* SLA de Aprovação do Cliente Final */}
-            <div className="mt-4 p-3.5 bg-surface-2 border border-line rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
+            {/* SLAs de Aprovação e Envio de Assets */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3.5 bg-surface-2 border border-line rounded-sm space-y-2">
                 <label htmlFor="approvalSlaInput" className="block text-caption font-semibold text-ink">
-                  SLA de Resposta / Aceite do Cliente Final
+                  SLA Aceite do Cliente Final
                 </label>
                 <p className="text-caption text-ink-subtle">
-                  Prazo limite para o cliente final aprovar a arte enviada antes de disparar alerta de cobrança.
+                  Prazo limite para aprovação de arte enviada ao cliente final.
                 </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    id="approvalSlaInput"
+                    type="number"
+                    min="1"
+                    max="168"
+                    value={formData.approvalSlaHours || 48}
+                    onChange={(e) => handleChange('approvalSlaHours', Number(e.target.value))}
+                    className="w-24 px-3 py-1.5 rounded-sm border border-line-control bg-surface text-ink font-semibold focus:outline-none text-center"
+                    required
+                  />
+                  <span className="text-caption text-ink-muted font-medium">horas (48h padrão)</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <input
-                  id="approvalSlaInput"
-                  type="number"
-                  min="1"
-                  max="168"
-                  value={formData.approvalSlaHours || 48}
-                  onChange={(e) => handleChange('approvalSlaHours', Number(e.target.value))}
-                  className="w-24 px-3 py-1.5 rounded-sm border border-line-control bg-surface text-ink font-semibold focus:outline-none text-center"
-                  required
-                />
-                <span className="text-caption text-ink-muted font-medium">horas (48h padrão)</span>
+
+              <div className="p-3.5 bg-surface-2 border border-line rounded-sm space-y-2">
+                <label htmlFor="assetSlaInput" className="block text-caption font-semibold text-ink">
+                  SLA Envio de Assets (Fotos/Vídeos)
+                </label>
+                <p className="text-caption text-ink-subtle">
+                  Prazo limite para o cliente enviar fotos/vídeos para a Retrospectiva.
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    id="assetSlaInput"
+                    type="number"
+                    min="1"
+                    max="168"
+                    value={formData.assetDeliverySlaHours || 72}
+                    onChange={(e) => handleChange('assetDeliverySlaHours', Number(e.target.value))}
+                    className="w-24 px-3 py-1.5 rounded-sm border border-line-control bg-surface text-ink font-semibold focus:outline-none text-center"
+                    required
+                  />
+                  <span className="text-caption text-ink-muted font-medium">horas (72h padrão)</span>
+                </div>
               </div>
             </div>
           </div>
