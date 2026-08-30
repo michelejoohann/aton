@@ -15,13 +15,19 @@ import {
   Bookmark,
   Sun,
   Film,
-  Coffee
+  Coffee,
+  XCircle,
+  AlertOctagon,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 import {
   calculateSaveTheDateDeadline,
   calculateInvitationDeadline,
   calculateRetrospectiveDeadline,
-  formatDateBR
+  formatDateBR,
+  getDaysDiffFromToday,
+  DEFAULT_SYSTEM_TODAY
 } from '../utils/dateUtils.js';
 
 export default function CoringaAgentDrawer({
@@ -51,8 +57,8 @@ export default function CoringaAgentDrawer({
   const afternoonEnd = settings?.afternoonEnd || '17:00';
 
   // New Project Simulation State
-  const [simPartyDate, setSimPartyDate] = useState('2027-04-20');
-  const [simValue, setSimValue] = useState(4800);
+  const [simPartyDate, setSimPartyDate] = useState('2026-09-28'); // Exemplo com Std vencido
+  const [simValue, setSimValue] = useState(5500);
   const [simCategory, setSimCategory] = useState('Casamento');
   const [simResult, setSimResult] = useState(null);
 
@@ -61,25 +67,72 @@ export default function CoringaAgentDrawer({
 
   if (!isOpen) return null;
 
+  // Calculadora com diagnóstico completo de prazos passados / risco assumido / críticas
   const handleSimulateNewEvent = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!simPartyDate) return;
 
     const stdDeadline = calculateSaveTheDateDeadline(simPartyDate, stdWeeks);
     const invDeadline = calculateInvitationDeadline(simPartyDate, invWeeks);
     const retroDeadline = calculateRetrospectiveDeadline(simPartyDate, retroDays);
 
+    const daysToParty = getDaysDiffFromToday(simPartyDate);
+    const daysToStd = getDaysDiffFromToday(stdDeadline);
+    const daysToInv = getDaysDiffFromToday(invDeadline);
+    const daysToRetro = getDaysDiffFromToday(retroDeadline);
+
+    const isPartyPast = daysToParty < 0;
+    const isStdPast = daysToStd < 0;
+    const isInvPast = daysToInv < 0;
+    const isRetroPast = daysToRetro < 0;
+
+    let status = 'HEALTHY';
+    let statusTitle = 'Cronograma Saudável & Aprovado';
+    let statusDescription = 'Todos os prazos retroativos e janelas de produção estão dentro dos padrões ideais configurados.';
+    let actionRecommendation = `O evento de R$ ${Number(simValue).toLocaleString('pt-BR')} pode ser inserido na sua grade diária (${morningStart}–${afternoonEnd}) sem risco de colisão.`;
+
+    if (isPartyPast) {
+      status = 'INVALID_PAST';
+      statusTitle = 'Data da Festa Inválida (Já Ocorrida)';
+      statusDescription = `A data informada (${formatDateBR(simPartyDate)}) é anterior à data base do sistema (${formatDateBR(DEFAULT_SYSTEM_TODAY)}).`;
+      actionRecommendation = 'Selecione uma data futura para planejar a produção do evento.';
+    } else if (isInvPast) {
+      status = 'CRITICAL_RISK';
+      statusTitle = '🚨 RISCO CRÍTICO ASSUMIDO: Convite & Save the Date Vencidos';
+      statusDescription = `A festa ocorrerá em apenas ${daysToParty} dias! Pela regra, o Convite Oficial deveria ter sido entregue há ${Math.abs(daysToInv)} dias e o Save the Date há ${Math.abs(daysToStd)} dias.`;
+      actionRecommendation = 'AÇÃO RECOMENDADA: Cobrar taxa de urgência (Fast-Track 50%+), descartar Save the Date impresso e produzir convite digital em regime de emergência no primeiro horário da manhã.';
+    } else if (isStdPast) {
+      status = 'WARNING_RISK';
+      statusTitle = '⚠ RISCO ASSUMIDO: Save the Date Vencido (Não-Entregável Padrão)';
+      statusDescription = `Festa em ${daysToParty} dias. O prazo retroativo de ${stdWeeks} semanas para o Save the Date expirou em ${formatDateBR(stdDeadline)} (há ${Math.abs(daysToStd)} dias).`;
+      actionRecommendation = 'AÇÃO RECOMENDADA: Informar cliente que o Save the Date tradicional é NÃO-ENTREGÁVEL no prazo. Sugerir disparo digital relâmpago hoje ou focar 100% da energia no Convite Oficial.';
+    } else if (daysToStd <= 7 || daysToInv <= 7) {
+      status = 'TIGHT';
+      statusTitle = '⚡ Atenção: Janela de Produção Imediata (Fast-Track)';
+      statusDescription = `O prazo do Save the Date vence em ${daysToStd} dias. Alocação imediata exigida na agenda de 08:00 AM.`;
+      actionRecommendation = 'AÇÃO RECOMENDADA: Abrir briefing hoje mesmo e travar o layout para evitar estouro do SLA de aprovação de 48h.';
+    }
+
     setSimResult({
       partyDate: simPartyDate,
       saveTheDateDeadline: stdDeadline,
       invitationDeadline: invDeadline,
       retrospectiveDeadline: retroDeadline,
-      recommendation: `CRONOGRAMA CALCULADO: Save the Date até ${formatDateBR(stdDeadline)} (${stdWeeks} sem / ${stdHours}h de produção), Convite Oficial até ${formatDateBR(invDeadline)} (${invWeeks} sem / ${invHours}h de produção) e Retrospectiva até ${formatDateBR(retroDeadline)} (${retroDays}d antes / ${retroHours}h). Evento de R$ ${Number(simValue).toLocaleString('pt-BR')} aprovado na sua jornada das ${morningStart}–${afternoonEnd}!`
+      daysToParty,
+      daysToStd,
+      daysToInv,
+      daysToRetro,
+      isStdPast,
+      isInvPast,
+      isRetroPast,
+      status,
+      statusTitle,
+      statusDescription,
+      actionRecommendation
     });
   };
 
   const handleApplyReschedule = () => {
-    // Reorganiza projetos com colisão
     const updated = projects.map(p => {
       if (p.collisionRisk) {
         return {
@@ -318,17 +371,54 @@ export default function CoringaAgentDrawer({
             </div>
           )}
 
-          {/* TAB 3: SIMULAR NOVO EVENTO */}
+          {/* TAB 3: SIMULAR NOVO EVENTO COM DIAGNÓSTICO DE PRAZOS PASSADOS E RISCO ASSUMIDO */}
           {activeTab === 'capacity' && (
             <div className="space-y-4">
-              <div className="bg-surface-2 border border-line rounded-sm p-4">
-                <h4 className="text-label font-semibold text-ink mb-1.5 flex items-center gap-2">
+              <div className="bg-surface-2 border border-line rounded-sm p-4 space-y-2">
+                <h4 className="text-label font-semibold text-ink flex items-center gap-2">
                   <Activity className="w-4 h-4 text-accent" aria-hidden="true" />
-                  Calculadora de retro-prazos do novo evento
+                  <span>Simulador de Prazos &amp; Diagnóstico de Risco</span>
                 </h4>
-                <p className="text-label text-ink-muted">
-                  Digite a <strong className="font-semibold text-ink">Data da Festa</strong>. O Amozir calculará instantaneamente a data limite do Save the Date (-{stdWeeks} semanas) e do Convite (-{invWeeks} semanas).
+                <p className="text-caption text-ink-muted">
+                  Informe a data final do evento. O Amozir analisará se os prazos de Save the Date ({stdWeeks}w) e Convite ({invWeeks}w) estão no passado, classificando como <strong className="font-semibold text-ink">Risco Assumido</strong> ou <strong className="font-semibold text-ink">Não-Entregável</strong>.
                 </p>
+
+                {/* Atalhos rápidos de teste */}
+                <div className="pt-2 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSimPartyDate('2026-09-25'); // Save the Date Vencido
+                      setSimCategory('Casamento');
+                      setSimValue(6200);
+                    }}
+                    className="text-[11px] font-semibold px-2 py-1 bg-surface border border-warning-border text-on-warning rounded-xs hover:bg-warning-surface transition-colors"
+                  >
+                    ⚡ Testar Festa em 3 Semanas (Std Vencido)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSimPartyDate('2026-09-10'); // Convite + Std Vencidos
+                      setSimCategory('15 Anos');
+                      setSimValue(4500);
+                    }}
+                    className="text-[11px] font-semibold px-2 py-1 bg-surface border border-urgent-border text-on-urgent rounded-xs hover:bg-urgent-surface transition-colors"
+                  >
+                    🚨 Testar Festa em 9 Dias (Convite Vencido)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSimPartyDate('2027-05-15'); // Saudável
+                      setSimCategory('Casamento');
+                      setSimValue(9200);
+                    }}
+                    className="text-[11px] font-semibold px-2 py-1 bg-surface border border-emerald-500/40 text-emerald-700 rounded-xs hover:bg-emerald-500/10 transition-colors"
+                  >
+                    ✓ Testar Festa em 2027 (Saudável)
+                  </button>
+                </div>
               </div>
 
               <form onSubmit={handleSimulateNewEvent} className="space-y-3 bg-surface border border-line rounded-sm p-4">
@@ -363,6 +453,9 @@ export default function CoringaAgentDrawer({
                     onChange={(e) => setSimPartyDate(e.target.value)}
                     className={`${fieldClass} font-semibold tabular-nums`}
                   />
+                  <span className="text-[11px] text-ink-muted mt-1 block">
+                    Data de hoje para cálculo: <strong className="text-ink">01/09/2026</strong>
+                  </span>
                 </div>
 
                 <div>
@@ -383,35 +476,145 @@ export default function CoringaAgentDrawer({
                   className="w-full inline-flex items-center justify-center gap-2 min-h-11 bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold rounded-sm transition-colors duration-150 ease-quint"
                 >
                   <Sun className="w-4 h-4" aria-hidden="true" />
-                  <span>Calcular Prazos Automáticos</span>
+                  <span>Calcular Prazos &amp; Diagnosticar Risco</span>
                 </button>
               </form>
 
+              {/* CARD DE RESULTADO DA SIMULAÇÃO COM DIAGNÓSTICO DE RISCO E PRAZOS PASSADOS */}
               {simResult && (
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-sm space-y-2.5">
-                  <p className="text-label font-semibold text-emerald-800 flex items-start gap-2">
-                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />
-                    <span>{simResult.recommendation}</span>
-                  </p>
+                <div className={`p-4 rounded-md border space-y-4 animate-in fade-in zoom-in-95 duration-200 ${
+                  simResult.status === 'CRITICAL_RISK'
+                    ? 'bg-urgent-surface border-urgent-border text-ink'
+                    : simResult.status === 'WARNING_RISK'
+                    ? 'bg-warning-surface border-warning-border text-ink'
+                    : simResult.status === 'TIGHT'
+                    ? 'bg-accent-soft border-accent text-ink'
+                    : 'bg-emerald-500/10 border-emerald-500/30 text-ink'
+                }`}>
+                  
+                  {/* Status Banner */}
+                  <div className="space-y-1 pb-3 border-b border-line">
+                    <div className="flex items-center gap-2">
+                      {simResult.status === 'CRITICAL_RISK' && <AlertOctagon className="w-5 h-5 text-on-urgent shrink-0" />}
+                      {simResult.status === 'WARNING_RISK' && <AlertTriangle className="w-5 h-5 text-on-warning shrink-0" />}
+                      {simResult.status === 'TIGHT' && <Clock className="w-5 h-5 text-accent shrink-0" />}
+                      {simResult.status === 'HEALTHY' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
 
-                  <div className="bg-surface p-2.5 rounded-sm border border-line space-y-1 text-caption">
-                    <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Bookmark className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
-                      <span>Save the Date: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.saveTheDateDeadline)}</span> (-{stdWeeks} semanas)</span>
+                      <h4 className={`text-label font-bold uppercase tracking-wider ${
+                        simResult.status === 'CRITICAL_RISK'
+                          ? 'text-on-urgent'
+                          : simResult.status === 'WARNING_RISK'
+                          ? 'text-on-warning'
+                          : simResult.status === 'TIGHT'
+                          ? 'text-accent'
+                          : 'text-emerald-800'
+                      }`}>
+                        {simResult.statusTitle}
+                      </h4>
                     </div>
-                    <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Mail className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
-                      <span>Convite Oficial: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.invitationDeadline)}</span> (-{invWeeks} semanas)</span>
+                    <p className="text-caption text-ink-muted">
+                      {simResult.statusDescription}
+                    </p>
+                  </div>
+
+                  {/* Detalhamento Individual dos Entregáveis com Selos de Risco */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted block">
+                      Análise de Entregabilidade por Item:
+                    </span>
+
+                    {/* 1. Save the Date */}
+                    <div className="p-2.5 rounded-sm bg-surface border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-caption">
+                      <div className="flex items-center gap-2">
+                        <Bookmark className={`w-4 h-4 shrink-0 ${simResult.isStdPast ? 'text-urgent' : 'text-accent'}`} />
+                        <div>
+                          <strong className="text-ink block">Save the Date ({stdWeeks} semanas / {stdHours}h):</strong>
+                          <span className="text-ink-muted">Prazo ideal: {formatDateBR(simResult.saveTheDateDeadline)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        {simResult.isStdPast ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-urgent bg-urgent-surface border border-urgent-border px-2 py-0.5 rounded-xs">
+                            <XCircle className="w-3.5 h-3.5" />
+                            Prazo Vencido há {Math.abs(simResult.daysToStd)}d (Não-Entregável)
+                          </span>
+                        ) : simResult.daysToStd <= 7 ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-warning bg-warning-surface border border-warning-border px-2 py-0.5 rounded-xs">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            Urgente (Vence em {simResult.daysToStd}d)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Prazo Seguro ({simResult.daysToStd}d)
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Film className="w-3.5 h-3.5 text-cyan-500" aria-hidden="true" />
-                      <span>Retrospectiva: <span className="font-semibold text-ink tabular-nums">{formatDateBR(simResult.retrospectiveDeadline)}</span> (-{retroDays} dia)</span>
+
+                    {/* 2. Convite Oficial */}
+                    <div className="p-2.5 rounded-sm bg-surface border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-caption">
+                      <div className="flex items-center gap-2">
+                        <Mail className={`w-4 h-4 shrink-0 ${simResult.isInvPast ? 'text-urgent' : 'text-purple-500'}`} />
+                        <div>
+                          <strong className="text-ink block">Convite Oficial ({invWeeks} semanas / {invHours}h):</strong>
+                          <span className="text-ink-muted">Prazo ideal: {formatDateBR(simResult.invitationDeadline)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        {simResult.isInvPast ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-urgent bg-urgent-surface border border-urgent-border px-2 py-0.5 rounded-xs">
+                            <AlertOctagon className="w-3.5 h-3.5" />
+                            Vencido há {Math.abs(simResult.daysToInv)}d (Produção Emergencial)
+                          </span>
+                        ) : simResult.daysToInv <= 7 ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-warning bg-warning-surface border border-warning-border px-2 py-0.5 rounded-xs">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            Fast-Track (Vence em {simResult.daysToInv}d)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Prazo Seguro ({simResult.daysToInv}d)
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-ink-muted">
-                      <PartyPopper className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
-                      <span>Data da Festa: <span className="font-semibold text-accent tabular-nums">{formatDateBR(simResult.partyDate)}</span></span>
+
+                    {/* 3. Retrospectiva */}
+                    <div className="p-2.5 rounded-sm bg-surface border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-caption">
+                      <div className="flex items-center gap-2">
+                        <Film className="w-4 h-4 shrink-0 text-cyan-500" />
+                        <div>
+                          <strong className="text-ink block">Retrospectiva ({retroDays}d antes / {retroHours}h):</strong>
+                          <span className="text-ink-muted">Prazo: {formatDateBR(simResult.retrospectiveDeadline)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        {simResult.isRetroPast ? (
+                          <span className="text-[11px] font-bold text-on-urgent bg-urgent-surface border border-urgent-border px-2 py-0.5 rounded-xs">
+                            Prazo Vencido
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium text-ink-muted bg-surface-2 border border-line px-2 py-0.5 rounded-xs">
+                            SLA Fotos: {assetSla}h
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Recomendação de Ação do Amozir */}
+                  <div className="p-3 bg-surface/90 border border-line rounded-sm space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-accent flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Diagnóstico do Agente Amozir:
+                    </span>
+                    <p className="text-caption font-medium text-ink">
+                      {simResult.actionRecommendation}
+                    </p>
+                  </div>
+
                 </div>
               )}
             </div>
