@@ -9,7 +9,7 @@ import NewProjectModal from './components/NewProjectModal';
 import CapacityModal from './components/CapacityModal';
 import PitchModal from './components/PitchModal';
 import { INITIAL_PROJECTS, PERSONA_CAMILA } from './data/mockData';
-import { Sparkles } from 'lucide-react';
+import { Sun } from 'lucide-react';
 
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
@@ -44,15 +44,15 @@ export default function App() {
     setProjects(prev => [newProj, ...prev]);
   };
 
-  // Open Coringa Agent Drawer with action preset
+  // Abre o drawer do agente Amozir com uma ação pré-selecionada
   const handleOpenAgentAction = (actionType = 'rules') => {
     setAgentActionType(actionType);
     setIsDrawerOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col selection:bg-purple-500 selection:text-white">
-      
+    <div className="min-h-screen text-ink flex flex-col">
+
       {/* Top Header Navigation */}
       <Header
         persona={persona}
@@ -66,8 +66,8 @@ export default function App() {
       />
 
       {/* Main Content Dashboard */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
-        
+      <main className="flex-1 max-w-7xl w-full mx-auto px-page-x lg:px-8 py-8">
+
         {/* Radar de Foco ("O que precisa da sua atenção AGORA - Regras 6m / 3m / Festa") */}
         <FocusRadar
           projects={projects}
@@ -93,13 +93,13 @@ export default function App() {
       </main>
 
       {/* Persistent Floating Quick AI Trigger Button */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-5 right-5 z-sticky">
         <button
           onClick={() => handleOpenAgentAction('rules')}
-          className="flex items-center gap-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-xl shadow-purple-600/40 border border-purple-400/30 transition-all hover:scale-105 active:scale-95 group animate-agent-pulse"
+          className="inline-flex items-center gap-2 min-h-11 px-4 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold shadow-raised transition-colors duration-200 ease-quint"
         >
-          <Sparkles className="w-4 h-4 text-purple-200 group-hover:rotate-12 transition-transform" />
-          <span>Falar com o Coringa</span>
+          <Sun className="w-4 h-4" aria-hidden="true" />
+          <span>Falar com o Amozir</span>
         </button>
       </div>
 
@@ -136,15 +136,20 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Coringa | Agente Gerente de Eventos • Regra Save the Date (6m) / Convite (3m) / Festa</span>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsPitchOpen(true)} className="hover:text-purple-400 transition-colors">
-              ICP & Tese Comercial
+      <footer className="border-t border-line bg-surface-2">
+        <div className="max-w-7xl mx-auto px-page-x lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-caption text-ink-muted">
+          <span className="text-center sm:text-left">
+            Amozir • Do prazo final ao próximo passo — Save the Date (6m) / Convite (3m) / Festa
+          </span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => setIsPitchOpen(true)}
+              className="inline-flex items-center min-h-11 px-2 rounded-sm text-ink-muted hover:text-accent underline decoration-line-control underline-offset-4 transition-colors duration-150 ease-quint"
+            >
+              ICP &amp; Tese Comercial
             </button>
-            <span>•</span>
-            <span className="text-purple-300 font-semibold">R$ 47,00 / mês</span>
+            <span aria-hidden="true" className="text-line-strong">•</span>
+            <span className="font-semibold text-ink tabular-nums">R$ 47,00 / mês</span>
           </div>
         </div>
       </footer>

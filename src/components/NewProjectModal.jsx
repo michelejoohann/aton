@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Plus, Calendar, DollarSign, User, Tag } from 'lucide-react';
+import { X, Plus, PartyPopper, Mail, Bookmark } from 'lucide-react';
 import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
 
 export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
@@ -38,68 +38,79 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
         { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: '3 meses antes', deadline: invitationDeadline, status: 'pending', completed: false },
         { id: `d-${Date.now()}-3`, title: 'Festa / Evento', rule: 'Data da Festa', deadline: partyDate, status: 'pending', completed: false }
       ],
-      lastUpdate: 'Cadastrado no Coringa'
+      lastUpdate: 'Cadastrado no Amozir'
     };
 
     onAddProject(newProj);
     onClose();
   };
 
+  const fieldClass =
+    'w-full min-h-11 bg-surface border border-line-control rounded-sm px-3 py-2 text-label text-ink placeholder:text-ink-subtle hover:border-ink-subtle focus:border-accent transition-colors duration-150 ease-quint';
+  const labelClass = 'block text-caption font-semibold text-ink-muted mb-1.5';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#0F172A] border border-slate-700/80 rounded-2xl w-full max-w-lg shadow-2xl text-slate-100 p-6 space-y-5">
-        
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay animate-fade-in">
+      <div className="bg-surface border border-line rounded-md w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-modal text-ink p-5 sm:p-6 space-y-5">
+
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-line-strong">
+          <div className="flex items-center gap-3 min-w-0">
+            <span
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface text-accent"
+            >
               <Plus className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white">Cadastrar Novo Evento / Festa</h2>
-              <p className="text-xs text-slate-400">O Coringa calculará retroativamente os prazos de 6m e 3m</p>
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-display text-section-title font-semibold text-ink">Cadastrar Novo Evento / Festa</h2>
+              <p className="text-caption text-ink-muted">O Amozir calculará retroativamente os prazos de 6m e 3m</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            aria-label="Fechar cadastro de evento"
+            className="inline-flex items-center justify-center shrink-0 min-w-11 min-h-11 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          
+        <form onSubmit={handleSubmit} className="space-y-4">
+
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">Nome do Evento:</label>
+            <label className={labelClass} htmlFor="np-name">Nome do Evento:</label>
             <input
+              id="np-name"
               type="text"
               required
               placeholder="Ex: Casamento Beatriz & Leonardo"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500 font-medium"
+              className={fieldClass}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Nome do Cliente:</label>
+              <label className={labelClass} htmlFor="np-client">Nome do Cliente:</label>
               <input
+                id="np-client"
                 type="text"
                 required
                 placeholder="Ex: Beatriz Lima"
                 value={client}
                 onChange={(e) => setClient(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500 font-medium"
+                className={fieldClass}
               />
             </div>
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Tipo de Evento:</label>
+              <label className={labelClass} htmlFor="np-category">Tipo de Evento:</label>
               <select
+                id="np-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500 font-medium"
+                className={fieldClass}
               >
                 <option value="Casamento">Casamento</option>
                 <option value="15 Anos">15 Anos</option>
@@ -112,56 +123,70 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid">
             <div>
-              <label className="block text-emerald-400 font-bold mb-1">🎉 Data Final da Festa:</label>
+              <label className={`${labelClass} text-accent flex items-center gap-1.5`} htmlFor="np-party-date">
+                <PartyPopper className="w-3.5 h-3.5" aria-hidden="true" />
+                Data Final da Festa:
+              </label>
               <input
+                id="np-party-date"
                 type="date"
                 required
                 value={partyDate}
                 onChange={(e) => setPartyDate(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500 font-bold"
+                className={`${fieldClass} font-semibold tabular-nums`}
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Valor do Contrato (R$):</label>
+              <label className={labelClass} htmlFor="np-value">Valor do Contrato (R$):</label>
               <input
+                id="np-value"
                 type="number"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-emerald-400 font-bold focus:outline-none focus:border-purple-500"
+                className={`${fieldClass} font-semibold tabular-nums`}
               />
             </div>
           </div>
 
           {/* Automatic Calculation Preview Box */}
-          <div className="p-3.5 bg-purple-950/30 border border-purple-500/40 rounded-xl space-y-1.5 font-mono text-[11px]">
-            <div className="text-purple-300 flex justify-between">
-              <span>📌 Save the Date (6m antes):</span>
-              <strong className="text-white">{formatDateBR(saveTheDateDeadline)}</strong>
+          <div className="p-3.5 bg-surface-2 border border-line rounded-sm space-y-2 text-label">
+            <div className="flex items-center justify-between gap-2 text-ink-muted">
+              <span className="flex items-center gap-1.5">
+                <Bookmark className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Save the Date (6m antes):
+              </span>
+              <strong className="font-semibold text-ink tabular-nums">{formatDateBR(saveTheDateDeadline)}</strong>
             </div>
-            <div className="text-amber-300 flex justify-between">
-              <span>💌 Convite Oficial (3m antes):</span>
-              <strong className="text-white">{formatDateBR(invitationDeadline)}</strong>
+            <div className="flex items-center justify-between gap-2 text-ink-muted">
+              <span className="flex items-center gap-1.5">
+                <Mail className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
+                Convite Oficial (3m antes):
+              </span>
+              <strong className="font-semibold text-ink tabular-nums">{formatDateBR(invitationDeadline)}</strong>
             </div>
-            <div className="text-emerald-300 flex justify-between pt-1 border-t border-purple-500/20">
-              <span>🎉 Data da Festa:</span>
-              <strong className="text-emerald-400">{formatDateBR(partyDate)}</strong>
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-line text-ink">
+              <span className="flex items-center gap-1.5 font-semibold">
+                <PartyPopper className="w-4 h-4 text-accent" aria-hidden="true" />
+                Data da Festa:
+              </span>
+              <strong className="font-semibold text-accent tabular-nums">{formatDateBR(partyDate)}</strong>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center justify-center min-h-11 px-4 rounded-sm bg-surface border border-line-control text-ink text-label font-semibold hover:bg-surface-2 transition-colors duration-150 ease-quint"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-600/30"
+              className="inline-flex items-center justify-center min-h-11 px-5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold transition-colors duration-150 ease-quint"
             >
               Criar Evento com Retro-Datas
             </button>

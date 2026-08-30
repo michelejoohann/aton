@@ -1,0 +1,4 @@
+interface:
+  display_name: "Role Architect"
+  short_description: "Estruture colaboração multiagente portátil."
+  default_prompt: "Estruture os papéis e o roteamento para esta tarefa, sem recrutar ou alterar arquivos ainda."

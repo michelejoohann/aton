@@ -74,3 +74,25 @@ Acesse em `http://localhost:5173/`.
 ### 💳 Modelo de Negócio
 - Mensalidade: **R$ 47,00/mês** (Aproximadamente R$ 1,57/dia).
 - Valor percebido: Se economizar 1 hora de organização por mês, o produto já se paga.
+
+---
+
+## 🧩 Estrutura de equipe (agentes)
+
+O repositório carrega, além do app, uma estrutura versionada de trabalho com agentes. Ela é **aditiva e neutra de ferramenta**: nada nela muda o build, as dependências ou a publicação, e o app roda igual para quem a ignorar.
+
+| Caminho | O que é |
+|---|---|
+| `PROJECT.md` | contexto permanente: propósito, público, fronteiras, guardrails |
+| `CHECKPOINT.md` | estado operacional: frentes, o que está autorizado, o que está bloqueado |
+| `ADR/` | decisões que sustentam o rito de revisão (as três do kit chegam como `PROPOSTO`) |
+| `equipe/papeis/` | os sete prompts de papel, integrais (Rei, Dama, Torre, Bispo, Cavalo, Peão-Rei, Peão-Dama) |
+| `equipe/formacoes/` | quem sobe em cada frente, com qual modelo e qual effort |
+| `equipe/docs/roteamento-multimodelo.md` | por que cada etapa roda em motor diferente da anterior |
+| `scripts/equipe.sh` | monta o time no canvas do Maestri (opcional) |
+| `CLAUDE.md`, `GEMINI.md`, `AGENTS.md` | entradas finas, uma por ferramenta, apontando para os mesmos arquivos |
+
+Trabalhando por **Gemini CLI**: leia `GEMINI.md` e siga. O Maestri e o `scripts/equipe.sh` são opcionais — sem eles, `equipe/papeis/*.md` continua valendo como prompt de papel.
+
+Trabalhando por **Claude Code** ou **Codex**: leia `CLAUDE.md` ou `AGENTS.md`.
+

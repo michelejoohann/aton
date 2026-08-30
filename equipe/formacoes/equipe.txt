@@ -1,0 +1,13 @@
+# Formação: equipe
+# Superfície do escritor: equipe/, scripts/, equipe/docs/roteamento-multimodelo.md
+# Fronteira: é a formação que mexe na própria fábrica. Não toca ADR/, PROJECT.md,
+#            CHECKPOINT.md nem nenhuma superfície de produto do projeto.
+#            Alteração de papel, formação ou rota passa pela skill role-architect
+#            e por aprovação humana explícita (CLAUDE.md).
+# Peça|Papel|Comando
+Dama|Planejador|codex -m gpt-5.6-sol -c model_reasoning_effort="medium" -s read-only
+Torre|Construtor|claude --model opus --effort high --permission-mode acceptEdits
+Peão-Rei|Testador|codex -m gpt-5.6-luna -c model_reasoning_effort="low" -s read-only
+Bispo|Revisor de Conformidade|claude --model opus --effort high --permission-mode plan
+Cavalo|Revisor Técnico|codex -m gpt-5.6-terra -c model_reasoning_effort="high" -s read-only
+Peão-Dama|Redator|codex -m gpt-5.6-luna -c model_reasoning_effort="low" -a never

@@ -1,0 +1,16 @@
+# Formação: construcao
+# Superfície do escritor: src/, public/, index.html
+# Nota:      superfície é a fronteira que a Torre não atravessa, e ela também
+#            precisa entrar em texto no brief: o cabeçalho declara, mas nada no
+#            comando a impõe automaticamente. Frente com outra superfície pede
+#            outra formação, não a edição desta durante a rodada.
+# Fronteira: não toca equipe/, scripts/ nem equipe/docs/roteamento-multimodelo.md — isso
+#            é da formação `equipe`. Não toca ADR/, PROJECT.md nem CHECKPOINT.md
+#            sem pedido explícito do usuário.
+# Peça|Papel|Comando
+Dama|Planejador|codex -m gpt-5.6-sol -c model_reasoning_effort="medium" -s read-only
+Torre|Construtor|claude --model opus --effort high --permission-mode acceptEdits
+Peão-Rei|Testador|codex -m gpt-5.6-luna -c model_reasoning_effort="low" -s read-only
+Bispo|Revisor de Conformidade|claude --model opus --effort high --permission-mode plan
+Cavalo|Revisor Técnico|codex -m gpt-5.6-terra -c model_reasoning_effort="high" -s read-only
+Peão-Dama|Redator|codex -m gpt-5.6-luna -c model_reasoning_effort="low" -a never

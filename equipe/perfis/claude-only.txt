@@ -1,0 +1,27 @@
+# Perfil: claude-only
+# Traduz cada comando Codex vivo das formações para o Claude equivalente, sem
+# editar formação nenhuma. A formação continua sendo a fonte canônica; este
+# arquivo é a camada de tradução deste motor.
+#
+# Correspondência exata: o comando de origem casa byte a byte ou não casa. O
+# script não interpreta -m, -c, -s nem -a, e comando novo sem linha aqui falha
+# fechado, com diagnóstico. Isso é intencional: adivinhar semântica de flag
+# poria política de rota dentro do shell.
+#
+# A coluna do meio é a condição sobre o modelo efetivo da Torre. * significa
+# independente da Torre e vale para as demais peças; para o Cavalo só vale linha
+# cuja condição é o modelo efetivo da Torre, e linha com * nunca casa para ele —
+# a busca compara a condição por igualdade exata. As duas linhas do Cavalo são o
+# único ponto onde a rota depende de contexto, e ela fica visível e versionada
+# aqui: com um fornecedor só, Cavalo e Torre continuam cruzados, agora por modelo.
+#
+# Comando já Claude não tem linha: passa byte a byte.
+Comando Codex|Modelo da Torre|Comando Claude
+codex -m gpt-5.6-sol -c model_reasoning_effort="medium" -s read-only|*|claude --model opus --effort medium --permission-mode plan
+codex -m gpt-5.6-sol -c model_reasoning_effort="medium" -s read-only -a never|*|claude --model opus --effort medium --permission-mode plan
+codex -m gpt-5.6-terra -c model_reasoning_effort="high" -s read-only|opus|claude --model fable --effort high --permission-mode plan
+codex -m gpt-5.6-terra -c model_reasoning_effort="high" -s read-only|fable|claude --model opus --effort high --permission-mode plan
+codex -m gpt-5.6-luna -c model_reasoning_effort="low" -s read-only|*|claude --model sonnet --effort low --permission-mode plan
+codex -m gpt-5.6-luna -c model_reasoning_effort="low" -s workspace-write|*|claude --model sonnet --effort low --permission-mode acceptEdits
+codex -m gpt-5.6-luna -c model_reasoning_effort="low"|*|claude --model sonnet --effort low --permission-mode acceptEdits
+codex -m gpt-5.6-luna -c model_reasoning_effort="low" -a never|*|claude --model sonnet --effort low --permission-mode acceptEdits

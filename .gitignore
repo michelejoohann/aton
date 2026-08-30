@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# --- kit de equipe ---
+# Estado local do canvas Maestri: IDs de terminal e role.json gerados pelo app.
+# A configuração versionada da equipe fica em equipe/ e scripts/equipe.sh.
+.maestri/
+
+# Seleção local do perfil de motor da equipe (claude-codex | claude-only).
+# É escolha de cada clone, não do projeto: ausente significa claude-codex.
+equipe/perfil.local
+
+.claude/settings.local.json
+**/.DS_Store
