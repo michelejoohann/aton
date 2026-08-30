@@ -286,6 +286,45 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
         });
       });
     }
+
+    // 4. Entregáveis Extras Homologados do Contrato (ex: Site RSVP, Havaianas, Painel Neon)
+    if (project.deliverables && Array.isArray(project.deliverables)) {
+      const extraItems = project.deliverables.filter(d => d.isExtra && !d.completed);
+      extraItems.forEach((extra, idx) => {
+        allMiniTasks.push({
+          id: `${project.id}-extra-sub-${idx}`,
+          projectId: project.id,
+          projectName: project.name,
+          client: project.client,
+          type: 'EXTRA',
+          deliverableName: extra.title,
+          stepName: `Sessão Extra: ${extra.title}`,
+          subTaskTitle: extra.description || extra.rule || 'Produção de entregável contratado em anexo',
+          durationHours: Math.min(2.5, extra.requiredHours || 2.0),
+          deadline: extra.deadline || project.saveTheDateDeadline || project.partyDate,
+          isCritical: true, // Novos entregáveis extras entram com alta prioridade de alocação
+          partyDate: project.partyDate
+        });
+      });
+    }
+
+    // 5. Briefing e Kickoff para novos contratos
+    if (project.stage === 'briefing') {
+      allMiniTasks.push({
+        id: `${project.id}-briefing-sub`,
+        projectId: project.id,
+        projectName: project.name,
+        client: project.client,
+        type: 'BRIEFING',
+        deliverableName: 'Briefing & Conceito Inicial',
+        stepName: 'Sessão 1/1: Alinhamento de Identidade',
+        subTaskTitle: 'Coleta de referências do contrato e setup dos prazos retroativos',
+        durationHours: 2.0,
+        deadline: project.contractDate || DEFAULT_SYSTEM_TODAY,
+        isCritical: true, // Primeiro horário da manhã para novos contratos
+        partyDate: project.partyDate
+      });
+    }
   });
 
   // Ordenação com prioridade matinal para itens críticos (08:00 AM)

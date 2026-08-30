@@ -73,12 +73,31 @@ export default function App() {
     setIsDrawerOpen(true);
   };
 
+  // Cálculo dinâmico de capacidade operacional baseado na carga horária real dos projetos ativos
+  const activeProjects = projects.filter(p => p.stage !== 'final_delivery');
+  const totalPendingWorkHours = activeProjects.reduce((sum, p) => {
+    if (p.deliverables && Array.isArray(p.deliverables) && p.deliverables.length > 0) {
+      return sum + p.deliverables.filter(d => !d.completed).reduce((dSum, d) => dSum + (Number(d.requiredHours) || 5), 0);
+    }
+    return sum + (userSettings.saveTheDateHours + userSettings.invitationHours + userSettings.partyHours);
+  }, 0);
+
+  // Capacidade mensal de referência = 160h (4 semanas x 40h)
+  const dynamicCapacityPercentage = Math.max(10, Math.min(150, Math.round((totalPendingWorkHours / 160) * 100)));
+
+  const dynamicPersona = {
+    ...persona,
+    capacityPercentage: dynamicCapacityPercentage,
+    pendingHours: totalPendingWorkHours,
+    activeProjectsCount: activeProjects.length
+  };
+
   return (
     <div className="min-h-screen text-ink flex flex-col">
 
       {/* Top Header Navigation */}
       <Header
-        persona={persona}
+        persona={dynamicPersona}
         projectsCount={projects.length}
         activeView={activeView}
         onSwitchView={(view) => setActiveView(view)}
@@ -166,7 +185,7 @@ export default function App() {
         isOpen={isCapacityOpen}
         onClose={() => setIsCapacityOpen(false)}
         projects={projects}
-        persona={persona}
+        persona={dynamicPersona}
         settings={userSettings}
       />
 
