@@ -159,6 +159,7 @@ export default function App() {
         onClose={() => setIsContractReaderOpen(false)}
         onAddProject={handleAddProject}
         settings={userSettings}
+        projects={projects}
       />
 
       <CapacityModal
