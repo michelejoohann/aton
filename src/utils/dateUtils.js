@@ -1,4 +1,4 @@
-// Utilitários de Cálculo Retroativo de Datas e Agendamento Inteligente da Agenda
+// Utilitários de Cálculo Retroativo de Datas e Agendamento Inteligente de Mini-Tarefas
 
 /**
  * Calcula o prazo do Save the Date em semanas antes da Festa (Padrão: 6 semanas)
@@ -58,7 +58,87 @@ export function minutesToTime(totalMinutes) {
 }
 
 /**
- * Gera o cronograma diário de trabalho com priorização matinal (08h) e pausas de 15m
+ * Decompõe entregáveis inteiros em MINI-TAREFAS diluídas com carga horária fracionada
+ */
+export function getDeliverableMiniTasks(deliverableType, totalHours, projectName, clientName, deadlineStr, isCritical) {
+  if (deliverableType === 'SAVE_THE_DATE') {
+    return [
+      {
+        stepName: 'Sessão 1/3: Concept & Moodboard',
+        subTaskTitle: 'Coleta de referências, conceito visual e paleta de cores',
+        durationHours: 1.5,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 2/3: Design Layout & Tipografia',
+        subTaskTitle: 'Composição gráfica do Save the Date e vetorização',
+        durationHours: 2.0,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 3/3: Fechamento & Disparo',
+        subTaskTitle: 'Ajustes de contraste, exportação em alta e disparo digital',
+        durationHours: 1.5,
+        isCritical
+      }
+    ];
+  }
+
+  if (deliverableType === 'INVITATION') {
+    return [
+      {
+        stepName: 'Sessão 1/4: Ilustração & Monograma',
+        subTaskTitle: 'Vetorização do brasão do casal e arte do envelope',
+        durationHours: 2.5,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 2/4: Diagramação & Faca Especial',
+        subTaskTitle: 'Mapeamento de faca gráfica, sangria e prova de cor',
+        durationHours: 2.5,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 3/4: Caligrafia & Produção Gráfica',
+        subTaskTitle: 'Caligrafia dos nomes de convidados e envio de amostra',
+        durationHours: 2.5,
+        isCritical
+      },
+      {
+        stepName: 'Sessão 4/4: Montagem & Lacre de Cera',
+        subTaskTitle: 'Acabamento final, aplicação de lacre e conferência de lote',
+        durationHours: 2.5,
+        isCritical
+      }
+    ];
+  }
+
+  // FESTA
+  return [
+    {
+      stepName: 'Sessão 1/5: Menus & Papelaria de Mesa',
+      subTaskTitle: 'Diagramação de menucards e marcadores de lugar',
+      durationHours: 2.0,
+      isCritical
+    },
+    {
+      stepName: 'Sessão 2/5: Placas de Sinalização & Welcome',
+      subTaskTitle: 'Design do painel de entrada e sinalização da cerimônia',
+      durationHours: 2.0,
+      isCritical
+    },
+    {
+      stepName: 'Sessão 3/5: Kits de Banheiro & Pista',
+      subTaskTitle: 'Identidade dos kits de amenities e havaianas',
+      durationHours: 2.0,
+      isCritical
+    }
+  ];
+}
+
+/**
+ * Gera a agenda de trabalho diária diluindo as MINI-TAREFAS no expediente das 08:00 às 17:00
+ * respeitando os turnos da manhã e tarde e a pausa de 15min.
  */
 export function generateDailySchedule(projects, settings, targetDateStr = '2026-09-01') {
   const config = settings || {
@@ -72,54 +152,76 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
     partyHours: 20
   };
 
-  // Coleta todas as tarefas/entregáveis associados a projetos ativos
-  const rawTasks = [];
+  const allMiniTasks = [];
 
   projects.forEach(project => {
-    // 1. Save the Date (5h)
-    rawTasks.push({
-      id: `${project.id}-task-std`,
-      projectId: project.id,
-      projectName: project.name,
-      client: project.client,
-      type: 'SAVE_THE_DATE',
-      title: `Produção Save the Date (${config.saveTheDateHours || 5}h required)`,
-      deliverableName: 'Save the Date',
-      durationHours: config.saveTheDateHours || 5,
-      deadline: project.saveTheDateDeadline,
-      partyDate: project.partyDate,
-      collisionRisk: project.collisionRisk,
-      isCritical: project.collisionRisk || getDaysDiffFromToday(project.saveTheDateDeadline) <= 15,
-      stage: project.stage
+    const isStdCritical = project.collisionRisk || getDaysDiffFromToday(project.saveTheDateDeadline) <= 15;
+    const isInvCritical = project.daysWaitingClient > 2 || getDaysDiffFromToday(project.invitationDeadline) <= 10;
+
+    // 1. Save the Date mini-tarefas (5h divididas)
+    const stdSubTasks = getDeliverableMiniTasks(
+      'SAVE_THE_DATE',
+      config.saveTheDateHours || 5,
+      project.name,
+      project.client,
+      project.saveTheDateDeadline,
+      isStdCritical
+    );
+
+    stdSubTasks.forEach((sub, idx) => {
+      allMiniTasks.push({
+        id: `${project.id}-std-sub-${idx}`,
+        projectId: project.id,
+        projectName: project.name,
+        client: project.client,
+        type: 'SAVE_THE_DATE',
+        deliverableName: 'Save the Date',
+        stepName: sub.stepName,
+        subTaskTitle: sub.subTaskTitle,
+        durationHours: sub.durationHours,
+        deadline: project.saveTheDateDeadline,
+        isCritical: sub.isCritical,
+        partyDate: project.partyDate
+      });
     });
 
-    // 2. Convite (10h)
-    rawTasks.push({
-      id: `${project.id}-task-inv`,
-      projectId: project.id,
-      projectName: project.name,
-      client: project.client,
-      type: 'INVITATION',
-      title: `Produção Convite Oficial (${config.invitationHours || 10}h required)`,
-      deliverableName: 'Convite Oficial',
-      durationHours: config.invitationHours || 10,
-      deadline: project.invitationDeadline,
-      partyDate: project.partyDate,
-      collisionRisk: project.collisionRisk,
-      isCritical: project.daysWaitingClient > 2 || getDaysDiffFromToday(project.invitationDeadline) <= 10,
-      stage: project.stage
+    // 2. Convite mini-tarefas (10h divididas)
+    const invSubTasks = getDeliverableMiniTasks(
+      'INVITATION',
+      config.invitationHours || 10,
+      project.name,
+      project.client,
+      project.invitationDeadline,
+      isInvCritical
+    );
+
+    invSubTasks.forEach((sub, idx) => {
+      allMiniTasks.push({
+        id: `${project.id}-inv-sub-${idx}`,
+        projectId: project.id,
+        projectName: project.name,
+        client: project.client,
+        type: 'INVITATION',
+        deliverableName: 'Convite Oficial',
+        stepName: sub.stepName,
+        subTaskTitle: sub.subTaskTitle,
+        durationHours: sub.durationHours,
+        deadline: project.invitationDeadline,
+        isCritical: sub.isCritical,
+        partyDate: project.partyDate
+      });
     });
   });
 
-  // Ordenação com PRIORIDADE MATINAL:
-  // Tarefas críticas/de alto risco entram PRIMEIRO na agenda da manhã (08:00)
-  rawTasks.sort((a, b) => {
+  // ORDENAÇÃO COM PRIORIDADE MATINAL:
+  // Mini-tarefas de projetos críticos entram PRIMEIRO na agenda da manhã (08:00)
+  allMiniTasks.sort((a, b) => {
     if (a.isCritical && !b.isCritical) return -1;
     if (!a.isCritical && b.isCritical) return 1;
     return getDaysDiffFromToday(a.deadline) - getDaysDiffFromToday(b.deadline);
   });
 
-  // Janelas de trabalho do dia
+  // Janelas de expediente
   const morningStartMin = timeToMinutes(config.morningStart || '08:00');
   const morningEndMin = timeToMinutes(config.morningEnd || '12:00');
   const afternoonStartMin = timeToMinutes(config.afternoonStart || '13:00');
@@ -129,15 +231,15 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
   const scheduledSlots = [];
   let currentPointer = morningStartMin;
 
-  rawTasks.slice(0, 5).forEach((task) => {
-    // Bloco de foco de 1.5h a 2.5h por sessão
-    const sessionDurationMin = Math.min(task.durationHours * 60, 120);
+  allMiniTasks.forEach((task) => {
+    const sessionDurationMin = Math.round(task.durationHours * 60);
 
-    // Ajusta se colidir com o almoço (12:00 - 13:00)
+    // Se ultrapassar o turno da manhã (12:00), pula para o turno da tarde (13:00)
     if (currentPointer + sessionDurationMin > morningEndMin && currentPointer < afternoonStartMin) {
       currentPointer = afternoonStartMin;
     }
 
+    // Se já passou das 17:00, encerra o expediente do dia
     if (currentPointer >= afternoonEndMin) return;
 
     const startStr = minutesToTime(currentPointer);
@@ -155,7 +257,6 @@ export function generateDailySchedule(projects, settings, targetDateStr = '2026-
     // Avança ponteiro com a PAUSA DE 15 MINUTOS configurada
     currentPointer = endMin + breakMin;
 
-    // Se a pausa empurrar para o horário de almoço, avança para o início da tarde (13:00)
     if (currentPointer >= morningEndMin && currentPointer < afternoonStartMin) {
       currentPointer = afternoonStartMin;
     }

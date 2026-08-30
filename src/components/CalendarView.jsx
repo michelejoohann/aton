@@ -286,15 +286,18 @@ export default function CalendarView({ projects, settings, onSelectProject }) {
                     {/* Task Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-caption font-semibold text-ink-muted uppercase tracking-wider">
-                          {slot.deliverableName} ({slot.durationHours}h produção exigida)
+                        <span className="text-caption font-bold text-accent uppercase tracking-wider bg-surface px-2 py-0.5 rounded-xs border border-line">
+                          {slot.stepName || slot.deliverableName} ({slot.durationHours}h)
+                        </span>
+                        <span className="text-caption text-ink-muted">
+                          Entregável: {slot.deliverableName}
                         </span>
                       </div>
-                      <h4 className="text-label font-semibold text-ink truncate mt-0.5">
-                        {slot.projectName} — Cliente: {slot.client}
+                      <h4 className="text-label font-semibold text-ink truncate mt-1">
+                        {slot.subTaskTitle || slot.title}
                       </h4>
                       <p className="text-caption text-ink-muted mt-0.5">
-                        {slot.title} • Data Limite do Entregável: <strong className="text-ink">{formatDateBR(slot.deadline)}</strong>
+                        Projeto: <strong className="text-ink font-medium">{slot.projectName}</strong> • Cliente: {slot.client} • Data Limite: <strong className="text-ink">{formatDateBR(slot.deadline)}</strong>
                       </p>
                     </div>
 
