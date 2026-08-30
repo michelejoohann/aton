@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, PartyPopper, Mail, Bookmark, FileText } from 'lucide-react';
 import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
 
-export default function NewProjectModal({ isOpen, onClose, onAddProject, settings }) {
+export default function NewProjectModal({ isOpen, onClose, onAddProject, onOpenContractReader, settings }) {
   const [name, setName] = useState('');
   const [client, setClient] = useState('');
   const [category, setCategory] = useState('Casamento');
@@ -83,6 +83,26 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject, setting
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
+
+        {/* Banner para atalho do Leitor de Contrato PDF/DOC */}
+        {onOpenContractReader && (
+          <div className="p-3.5 bg-accent-soft/60 border border-line rounded-sm flex items-center justify-between gap-3">
+            <div className="text-caption text-ink-muted">
+              <strong className="text-ink font-semibold block">Possui o contrato em PDF ou DOC?</strong>
+              O Agente IA lê o documento e extrai as datas e entregáveis extras automaticamente.
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenContractReader();
+              }}
+              className="px-3 py-1.5 rounded-sm bg-accent text-on-accent text-caption font-semibold whitespace-nowrap hover:bg-accent-hover transition-colors"
+            >
+              📄 Ler PDF/DOC
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
 

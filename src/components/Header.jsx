@@ -10,7 +10,8 @@ export default function Header({
   onOpenCoringaAgent,
   onOpenPitchModal,
   onOpenCapacityModal,
-  onOpenUserSettings
+  onOpenUserSettings,
+  onOpenContractReader
 }) {
   const isOverloaded = persona.capacityPercentage > 85;
 
@@ -140,6 +141,17 @@ export default function Header({
           >
             <Sun className="w-4 h-4" aria-hidden="true" />
             <span className="whitespace-nowrap">Falar com o Amozir</span>
+          </button>
+
+          {/* Contract Reader Button */}
+          <button
+            onClick={onOpenContractReader}
+            aria-label="Leitor de Contrato e Briefing PDF/DOC com IA"
+            title="Importar Contrato ou Briefing (PDF/DOC) e extrair entregáveis extras"
+            className="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-sm bg-surface border border-line-control text-ink text-label font-semibold hover:bg-surface-2 transition-colors duration-150 ease-quint"
+          >
+            <FileText className="w-4 h-4 text-accent" aria-hidden="true" />
+            <span className="hidden sm:inline whitespace-nowrap">📄 Ler Contrato (PDF/DOC)</span>
           </button>
 
           {/* New Project Button */}

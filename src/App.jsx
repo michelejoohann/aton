@@ -9,6 +9,7 @@ import NewProjectModal from './components/NewProjectModal';
 import CapacityModal from './components/CapacityModal';
 import PitchModal from './components/PitchModal';
 import UserSettingsModal, { DEFAULT_SETTINGS } from './components/UserSettingsModal';
+import ContractReaderModal from './components/ContractReaderModal';
 import { INITIAL_PROJECTS, PERSONA_CAMILA } from './data/mockData';
 import { Sun } from 'lucide-react';
 
@@ -45,6 +46,7 @@ export default function App() {
   const [isCapacityOpen, setIsCapacityOpen] = useState(false);
   const [isPitchOpen, setIsPitchOpen] = useState(false);
   const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
+  const [isContractReaderOpen, setIsContractReaderOpen] = useState(false);
 
   // Move project stage in pipeline
   const handleMoveProjectStage = (projectId, newStage) => {
@@ -85,6 +87,7 @@ export default function App() {
         onOpenPitchModal={() => setIsPitchOpen(true)}
         onOpenCapacityModal={() => setIsCapacityOpen(true)}
         onOpenUserSettings={() => setIsUserSettingsOpen(true)}
+        onOpenContractReader={() => setIsContractReaderOpen(true)}
       />
 
       {/* Main Content Dashboard */}
@@ -146,6 +149,14 @@ export default function App() {
       <NewProjectModal
         isOpen={isNewProjectOpen}
         onClose={() => setIsNewProjectOpen(false)}
+        onAddProject={handleAddProject}
+        onOpenContractReader={() => setIsContractReaderOpen(true)}
+        settings={userSettings}
+      />
+
+      <ContractReaderModal
+        isOpen={isContractReaderOpen}
+        onClose={() => setIsContractReaderOpen(false)}
         onAddProject={handleAddProject}
         settings={userSettings}
       />
