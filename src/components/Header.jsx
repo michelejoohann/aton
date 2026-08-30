@@ -13,7 +13,8 @@ export default function Header({
   onOpenUserSettings,
   onOpenContractReader
 }) {
-  const isOverloaded = persona.capacityPercentage > 85;
+  const capacityPercentage = persona?.capacityPercentage ?? 88;
+  const isOverloaded = capacityPercentage > 85;
 
   const viewButtonClass = (view) =>
     `inline-flex items-center justify-center gap-1.5 min-h-11 px-3 rounded-sm text-label font-semibold transition-colors duration-150 ease-quint ${
@@ -91,7 +92,7 @@ export default function Header({
           {/* Active Projects & Capacity Indicator */}
           <button
             onClick={onOpenCapacityModal}
-            aria-label={`Diagnóstico de capacidade: ${projectsCount} projetos, ${persona.capacityPercentage}% de ocupação${isOverloaded ? ' — sobrecarga' : ''}`}
+            aria-label={`Diagnóstico de capacidade: ${projectsCount} projetos, ${capacityPercentage}% de ocupação${isOverloaded ? ' — sobrecarga' : ''}`}
             className="inline-flex items-center gap-2.5 min-h-11 px-3 rounded-sm bg-surface border border-line-control hover:border-ink-subtle transition-colors duration-150 ease-quint"
           >
             <span className="flex items-center gap-1.5 text-label text-ink-muted">
@@ -108,11 +109,11 @@ export default function Header({
                   className={`block h-full rounded-full transition-[width] duration-200 ease-quint ${
                     isOverloaded ? 'bg-warning' : 'bg-accent'
                   }`}
-                  style={{ width: `${persona.capacityPercentage}%` }}
+                  style={{ width: `${capacityPercentage}%` }}
                 ></span>
               </span>
               <span className={`font-semibold tabular-nums ${isOverloaded ? 'text-on-warning' : 'text-ink-muted'}`}>
-                {persona.capacityPercentage}%
+                {capacityPercentage}%
               </span>
               {isOverloaded && (
                 <span className="inline-flex items-center gap-1 text-caption font-semibold uppercase tracking-[0.1em] text-on-warning">
