@@ -327,11 +327,20 @@ export function generateDailySchedule(projects = [], settings, targetDateStr = D
     }
   });
 
-  // Ordenação com prioridade matinal para itens críticos (08:00 AM)
+  // Ordenação com prioridade matinal para itens com prazo no dia em questão (targetDateStr) e itens críticos (08:00 AM)
   allMiniTasks.sort((a, b) => {
+    // 1. Prioridade máxima absoluta para tarefas com prazo para a data de hoje (01/09/2026)
+    const aIsToday = a.deadline === targetDateStr || a.deadline === DEFAULT_SYSTEM_TODAY;
+    const bIsToday = b.deadline === targetDateStr || b.deadline === DEFAULT_SYSTEM_TODAY;
+    if (aIsToday && !bIsToday) return -1;
+    if (!aIsToday && bIsToday) return 1;
+
+    // 2. Prioridade para tarefas marcadas como críticas ou de novos contratos
     if (a.isCritical && !b.isCritical) return -1;
     if (!a.isCritical && b.isCritical) return 1;
-    return getDaysDiffFromToday(a.deadline) - getDaysDiffFromToday(b.deadline);
+
+    // 3. Proximidade da data limite
+    return getDaysDiffFromToday(a.deadline, targetDateStr) - getDaysDiffFromToday(b.deadline, targetDateStr);
   });
 
   const morningStartMin = timeToMinutes(config.morningStart);

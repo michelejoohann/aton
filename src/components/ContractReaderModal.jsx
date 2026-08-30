@@ -31,6 +31,38 @@ import {
 // Amostras pré-carregadas para teste instantâneo sem necessidade de upload local
 const SAMPLE_CONTRACTS = [
   {
+    id: 'sample-urgent-today',
+    title: '🚨 Contrato Urgente com Kickoff & Save the Date Imediato (Impacta Hoje 01/09)',
+    fileName: 'Contrato_Urgente_Casamento_Clara_e_Thiago_2026.pdf',
+    extracted: {
+      name: 'Casamento Clara & Thiago (Urgente)',
+      client: 'Clara Vasconcelos',
+      category: 'Casamento',
+      value: 8400,
+      contractDate: '2026-09-01',
+      partyDate: '2026-10-13', // Festa em 6 semanas -> Save the Date vence HOJE (01/09/2026)!
+      hasRetrospective: true,
+      extraDeliverables: [
+        {
+          id: 'extra-urgent-1',
+          title: 'Site do Casamento com Confirmação Express',
+          description: 'Criação de site responsivo com RSVP digital e disparo imediato no primeiro horário.',
+          suggestedHours: 4,
+          suggestedDeadlineWeeks: 6,
+          accepted: true,
+        },
+        {
+          id: 'extra-urgent-2',
+          title: 'Monograma & Cardápio Welcome Drinks',
+          description: 'Identidade gráfica de boas-vindas para impressão gráfica rápida.',
+          suggestedHours: 3,
+          suggestedDeadlineWeeks: 5,
+          accepted: true,
+        }
+      ]
+    }
+  },
+  {
     id: 'sample-1',
     title: 'Contrato Casamento Luxo (com Site RSVP e Havaianas Extras)',
     fileName: 'Contrato_Casamento_Vanessa_e_Rodrigo_2027.pdf',
