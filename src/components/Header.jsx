@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Layers, Info, LayoutGrid, Calendar as CalendarIcon, Sun, AlertTriangle } from 'lucide-react';
+import { Plus, Layers, Info, LayoutGrid, Calendar as CalendarIcon, Sun, AlertTriangle, Settings } from 'lucide-react';
 
 export default function Header({
   persona,
@@ -9,7 +9,8 @@ export default function Header({
   onOpenNewProject,
   onOpenCoringaAgent,
   onOpenPitchModal,
-  onOpenCapacityModal
+  onOpenCapacityModal,
+  onOpenUserSettings
 }) {
   const isOverloaded = persona.capacityPercentage > 85;
 
@@ -21,14 +22,12 @@ export default function Header({
     }`;
 
   return (
-    <header className="sticky top-0 z-sticky bg-surface-2 border-b border-line px-page-x lg:px-8 py-3">
+    <header className="sticky top-0 z-sticky bg-surface-2 border-b border-line px-page-x lg:px-8 py-3 shadow-subtle">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
 
         {/* Brand & Agent Badge */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
           <div className="flex items-center gap-3">
-            {/* Marca Amozir: eixo vertical, conexões de rizoma sob a
-                superfície e o pivô em acento. */}
             <svg
               aria-hidden="true"
               viewBox="0 0 40 40"
@@ -51,7 +50,7 @@ export default function Header({
                   Amozir
                 </h1>
                 <span className="text-caption font-medium bg-surface text-ink-muted border border-line px-2 py-0.5 rounded-xs">
-                  Agente de gestão multiprojeto
+                  Agente de Gestão Multiprojeto
                 </span>
               </div>
               <p className="text-caption text-ink-muted">
@@ -60,15 +59,15 @@ export default function Header({
             </div>
           </div>
 
-          {/* Quick Pitch Context Toggle */}
+          {/* User Settings Button */}
           <button
-            onClick={onOpenPitchModal}
-            aria-label="Ver tese do ICP e modelo de negócios"
-            title="Ver tese do ICP e modelo de negócios"
-            className="inline-flex items-center justify-center gap-1.5 min-h-11 min-w-11 px-3 rounded-sm text-label font-medium text-ink-muted border border-line-control bg-surface hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
+            onClick={onOpenUserSettings}
+            aria-label="Abrir Painel de Configurações do Usuário"
+            title="Configurações do Usuário Principal (Prazos, Horas de Produção e Jornada)"
+            className="inline-flex items-center justify-center gap-1.5 min-h-11 px-3 rounded-sm text-label font-medium text-ink-muted border border-line-control bg-surface hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
           >
-            <Info className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline whitespace-nowrap">Ver ICP (R$ 47/mês)</span>
+            <Settings className="w-4 h-4 text-accent" aria-hidden="true" />
+            <span className="hidden sm:inline whitespace-nowrap">Configurações</span>
           </button>
         </div>
 
@@ -84,7 +83,7 @@ export default function Header({
 
             <button onClick={() => onSwitchView('calendar')} className={viewButtonClass('calendar')}>
               <CalendarIcon className="w-4 h-4" aria-hidden="true" />
-              <span className="whitespace-nowrap">Calendário</span>
+              <span className="whitespace-nowrap">Agenda &amp; Calendário</span>
             </button>
           </div>
 
@@ -121,6 +120,17 @@ export default function Header({
                 </span>
               )}
             </span>
+          </button>
+
+          {/* Pitch Modal Info */}
+          <button
+            onClick={onOpenPitchModal}
+            aria-label="Ver tese do ICP e modelo de negócios"
+            title="Ver tese do ICP e modelo de negócios"
+            className="inline-flex items-center justify-center gap-1.5 min-h-11 min-w-11 px-3 rounded-sm text-label font-medium text-ink-muted border border-line-control bg-surface hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
+          >
+            <Info className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden lg:inline whitespace-nowrap">ICP (R$ 47/mês)</span>
           </button>
 
           {/* Gatilho rápido do agente Amozir */}

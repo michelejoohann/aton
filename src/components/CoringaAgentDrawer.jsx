@@ -23,11 +23,17 @@ export default function CoringaAgentDrawer({
   isOpen,
   onClose,
   projects,
+  settings,
   initialAction,
   onUpdateProjects
 }) {
   const [activeTab, setActiveTab] = useState(initialAction || 'rules');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  const stdWeeks = settings?.saveTheDateWeeks || 6;
+  const invWeeks = settings?.invitationWeeks || 3;
+  const stdHours = settings?.saveTheDateHours || 5;
+  const invHours = settings?.invitationHours || 10;
 
   // New Project Simulation State
   const [simPartyDate, setSimPartyDate] = useState('2027-04-20');
@@ -44,14 +50,14 @@ export default function CoringaAgentDrawer({
     e.preventDefault();
     if (!simPartyDate) return;
 
-    const stdDeadline = calculateSaveTheDateDeadline(simPartyDate);
-    const invDeadline = calculateInvitationDeadline(simPartyDate);
+    const stdDeadline = calculateSaveTheDateDeadline(simPartyDate, stdWeeks);
+    const invDeadline = calculateInvitationDeadline(simPartyDate, invWeeks);
 
     setSimResult({
       partyDate: simPartyDate,
       saveTheDateDeadline: stdDeadline,
       invitationDeadline: invDeadline,
-      recommendation: `CRONOGRAMA CALCULADO COM SUCESSO: Pela regra de prazos retroativos, o Save the Date deverá ser entregue até ${formatDateBR(stdDeadline)} (6m antes) e o Convite Oficial até ${formatDateBR(invDeadline)} (3m antes). O evento de R$ ${Number(simValue).toLocaleString('pt-BR')} foi aprovado na sua grade!`
+      recommendation: `CRONOGRAMA CALCULADO COM SUCESSO: Pela regra de prazos retroativos, o Save the Date deverá ser entregue até ${formatDateBR(stdDeadline)} (${stdWeeks} sem / ${stdHours}h de produção) e o Convite Oficial até ${formatDateBR(invDeadline)} (${invWeeks} sem / ${invHours}h de produção). O evento de R$ ${Number(simValue).toLocaleString('pt-BR')} foi aprovado na sua grade na jornada 08h–17h!`
     });
   };
 

@@ -1,8 +1,14 @@
 import React from 'react';
-import { X, Activity, AlertTriangle, Info } from 'lucide-react';
+import { X, Activity, AlertTriangle, Info, Clock } from 'lucide-react';
 
-export default function CapacityModal({ isOpen, onClose, projects, persona }) {
+export default function CapacityModal({ isOpen, onClose, projects, persona, settings }) {
   if (!isOpen) return null;
+
+  const stdWeeks = settings?.saveTheDateWeeks || 6;
+  const invWeeks = settings?.invitationWeeks || 3;
+  const stdHours = settings?.saveTheDateHours || 5;
+  const invHours = settings?.invitationHours || 10;
+  const partyHours = settings?.partyHours || 20;
 
   const totalValue = projects.reduce((acc, p) => acc + p.value, 0);
   const waitingApprovalCount = projects.filter(p => p.stage === 'waiting_approval').length;
@@ -10,7 +16,7 @@ export default function CapacityModal({ isOpen, onClose, projects, persona }) {
   const briefingCount = projects.filter(p => p.stage === 'briefing').length;
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay animate-fade-in">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs overflow-y-auto">
       <div className="bg-surface border border-line rounded-md w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-modal text-ink p-5 sm:p-6 space-y-5">
 
         <div className="flex items-start justify-between gap-3 pb-4 border-b border-line-strong">
@@ -23,17 +29,33 @@ export default function CapacityModal({ isOpen, onClose, projects, persona }) {
             </span>
             <div className="min-w-0">
               <h2 className="font-display text-section-title font-semibold text-ink">Diagnóstico de Capacidade Operacional</h2>
-              <p className="text-caption text-ink-muted">Por que 2-4 entregas mensais geram 9 projetos simultâneos em gestão?</p>
+              <p className="text-caption text-ink-muted">Jornada 08h–12h / 13h–17h • Carga horária configurada</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             aria-label="Fechar diagnóstico de capacidade"
-            className="inline-flex items-center justify-center shrink-0 min-w-11 min-h-11 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
+            className="inline-flex items-center justify-center shrink-0 p-2 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
+        </div>
+
+        {/* Configured Work Parameters */}
+        <div className="grid grid-cols-3 gap-2 p-3 bg-surface-2 border border-line rounded-sm text-center text-caption font-semibold">
+          <div>
+            <span className="block text-ink-muted text-caption">Std ({stdWeeks} semanas)</span>
+            <span className="text-ink font-bold">{stdHours}h de produção</span>
+          </div>
+          <div>
+            <span className="block text-ink-muted text-caption">Convite ({invWeeks} semanas)</span>
+            <span className="text-ink font-bold">{invHours}h de produção</span>
+          </div>
+          <div>
+            <span className="block text-ink-muted text-caption">Festa (Final)</span>
+            <span className="text-ink font-bold">{partyHours}h de produção</span>
+          </div>
         </div>
 
         {/* Capacity Gauge Bar & Status */}
@@ -56,12 +78,12 @@ export default function CapacityModal({ isOpen, onClose, projects, persona }) {
           <p className="text-label text-ink-muted flex items-start gap-2 pt-1">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-on-warning" aria-hidden="true" />
             <span>
-              <strong className="font-semibold text-ink">Diagnóstico do Amozir:</strong> Você está operando perto do teto. O problema não é falta de capacidade de criação, mas a <strong className="font-semibold text-ink">indefinição dos prazos de resposta dos clientes</strong>.
+              <strong className="font-semibold text-ink">Diagnóstico do Amozir:</strong> Você está operando perto do teto. Na jornada das 08h-12h e 13h-17h com pausas de {settings?.breakMinutes || 15}min, a <strong className="font-semibold text-ink">indefinição dos prazos de resposta dos clientes</strong> gera gargalos nos convites.
             </span>
           </p>
         </div>
 
-        {/* Breakdown Table of the Overlapping 9 projects */}
+        {/* Breakdown Table */}
         <div className="space-y-3">
           <h3 className="text-label font-semibold text-ink-muted pb-2 border-b border-line">
             Distribuição dos projetos nas etapas
@@ -71,7 +93,7 @@ export default function CapacityModal({ isOpen, onClose, projects, persona }) {
             <div className="bg-surface border border-line rounded-sm p-3">
               <span className="block text-caption uppercase tracking-[0.08em] text-ink-subtle">Em Criação Ativa</span>
               <strong className="block text-section-title font-semibold text-ink tabular-nums mt-1">{inCreationCount} Projetos</strong>
-              <p className="text-caption text-ink-muted mt-1">Consumindo 60% das suas horas de execução</p>
+              <p className="text-caption text-ink-muted mt-1">Alocados no horário da manhã (08:00)</p>
             </div>
 
             <div className="bg-surface border border-line rounded-sm p-3">
@@ -97,14 +119,14 @@ export default function CapacityModal({ isOpen, onClose, projects, persona }) {
         <div className="p-4 bg-accent-soft border border-line rounded-sm text-label text-ink-muted flex items-start gap-2.5">
           <Info className="w-4 h-4 shrink-0 mt-0.5 text-accent" aria-hidden="true" />
           <span>
-            <strong className="font-semibold text-ink">Solução do Amozir:</strong> Por <strong className="font-semibold text-ink">R$ 47/mês</strong>, o Amozir monitora a movimentação de cada etapa e antecipa quando duas aprovações pendentes vão explodir no mesmo dia.
+            <strong className="font-semibold text-ink">Solução do Amozir:</strong> Por <strong className="font-semibold text-ink">R$ 47/mês</strong>, o Amozir monitora as janelas de {stdWeeks} e {invWeeks} semanas e garante as pausas de {settings?.breakMinutes || 15}min.
           </span>
         </div>
 
         <div className="flex justify-end pt-4 border-t border-line">
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center min-h-11 px-5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold transition-colors duration-150 ease-quint"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-sm bg-accent hover:bg-accent-hover text-on-accent text-label font-semibold transition-colors"
           >
             Entendido, Voltar ao Dashboard
           </button>

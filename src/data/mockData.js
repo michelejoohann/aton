@@ -46,14 +46,14 @@ export const PERSONA_CAMILA = {
   deliveriesPerMonth: '3 festas/mês',
   activeProjectsCount: 9,
   capacityPercentage: 86,
-  status: '2 Convites (prazo 3 meses) colidindo em Setembro',
+  status: '2 Convites (prazo 3 sem.) colidindo no mês corrente',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
 };
 
-// Projetos com a regra estrita de 3 entregáveis por festa:
-// 1. Save the Date (Até 6 meses antes da Festa)
-// 2. Convite (Até 3 meses antes da Festa)
-// 3. Festa (Data Final / Evento)
+// Projetos com as regras configuráveis de 3 entregáveis por festa:
+// 1. Save the Date (Regra: 6 semanas antes da Festa, 5h de produção)
+// 2. Convite (Regra: 3 semanas antes da Festa, 10h de produção)
+// 3. Festa (Data Final / Evento, 20h de produção)
 
 export const INITIAL_PROJECTS = [
   {
@@ -62,19 +62,19 @@ export const INITIAL_PROJECTS = [
     client: 'Marina Ramos',
     stage: 'creation',
     value: 5800,
-    partyDate: '2027-03-15',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2027-03-15'), // 2026-09-15
-    invitationDeadline: calculateInvitationDeadline('2027-03-15'),   // 2026-12-15
-    deadline: '2027-03-15',
+    partyDate: '2026-10-15',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-10-15', 6), // ~03/09/2026
+    invitationDeadline: calculateInvitationDeadline('2026-10-15', 3),   // ~24/09/2026
+    deadline: '2026-10-15',
     daysWaitingClient: 0,
     collisionRisk: true,
-    riskMessage: 'Prazo limite do Save the Date (15/09 - regra 6m) coincide com aprovação do 15 Anos Beatriz',
+    riskMessage: 'Prazo limite do Save the Date (6w) coincide com aprovação do 15 Anos Beatriz',
     progress: 45,
     category: 'Casamento',
     deliverables: [
-      { id: 'd1', title: 'Save the Date (Digital & Impresso)', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2027-03-15'), status: 'in_progress', completed: false },
-      { id: 'd2', title: 'Convite Oficial com Caligrafia', rule: '3 meses antes', deadline: calculateInvitationDeadline('2027-03-15'), status: 'pending', completed: false },
-      { id: 'd3', title: 'Identidade da Festa (Menucard, Placas & Lembranças)', rule: 'Data da Festa', deadline: '2027-03-15', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date (Digital & Impresso)', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-10-15', 6), status: 'in_progress', completed: false },
+      { id: 'd2', title: 'Convite Oficial com Caligrafia', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-10-15', 3), status: 'pending', completed: false },
+      { id: 'd3', title: 'Identidade da Festa (Menucard, Placas & Lembranças)', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-10-15', status: 'pending', completed: false }
     ],
     lastUpdate: 'Criando Save the Date'
   },
@@ -84,19 +84,19 @@ export const INITIAL_PROJECTS = [
     client: 'Patrícia Costa (Mãe)',
     stage: 'waiting_approval',
     value: 4200,
-    partyDate: '2026-12-10',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-12-10'), // 2026-06-10 (Concluído)
-    invitationDeadline: calculateInvitationDeadline('2026-12-10'),   // 2026-09-10 (Aguardando Aprovação!)
-    deadline: '2026-12-10',
+    partyDate: '2026-09-30',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-09-30', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-09-30', 3),
+    deadline: '2026-09-30',
     daysWaitingClient: 4,
     collisionRisk: true,
-    riskMessage: 'Arte do Convite (prazo 3m) aguardando aprovação da mãe há 4 dias',
+    riskMessage: 'Arte do Convite (prazo 3w) aguardando aprovação da mãe há 4 dias',
     progress: 70,
     category: '15 Anos',
     deliverables: [
-      { id: 'd1', title: 'Save the Date', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2026-12-10'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite Oficial Luxo', rule: '3 meses antes', deadline: calculateInvitationDeadline('2026-12-10'), status: 'waiting_approval', completed: false },
-      { id: 'd3', title: 'Kits da Festa e Pista de Dança', rule: 'Data da Festa', deadline: '2026-12-10', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-09-30', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite Oficial Luxo', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-09-30', 3), status: 'waiting_approval', completed: false },
+      { id: 'd3', title: 'Kits da Festa e Pista de Dança', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-09-30', status: 'pending', completed: false }
     ],
     lastUpdate: 'Aguardando aprovação do layout do Convite'
   },
@@ -106,19 +106,19 @@ export const INITIAL_PROJECTS = [
     client: 'Henrique Silveira',
     stage: 'creation',
     value: 3500,
-    partyDate: '2027-01-20',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2027-01-20'), // 2026-07-20
-    invitationDeadline: calculateInvitationDeadline('2027-01-20'),   // 2026-10-20
-    deadline: '2027-01-20',
+    partyDate: '2026-11-20',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-11-20', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-11-20', 3),
+    deadline: '2026-11-20',
     daysWaitingClient: 0,
     collisionRisk: false,
     riskMessage: null,
     progress: 50,
     category: 'Bodas',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Dourado', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2027-01-20'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite Clássico', rule: '3 meses antes', deadline: calculateInvitationDeadline('2027-01-20'), status: 'in_progress', completed: false },
-      { id: 'd3', title: 'Menus de Mesa & Papelaria Festa', rule: 'Data da Festa', deadline: '2027-01-20', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Dourado', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-11-20', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite Clássico', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-11-20', 3), status: 'in_progress', completed: false },
+      { id: 'd3', title: 'Menus de Mesa & Papelaria Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-11-20', status: 'pending', completed: false }
     ],
     lastUpdate: 'Diagramando Convite Clássico'
   },
@@ -128,19 +128,19 @@ export const INITIAL_PROJECTS = [
     client: 'Lucas Mendes',
     stage: 'revisions',
     value: 6200,
-    partyDate: '2026-11-05',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-11-05'), // 2026-05-05
-    invitationDeadline: calculateInvitationDeadline('2026-11-05'),   // 2026-08-05
-    deadline: '2026-11-05',
+    partyDate: '2026-10-05',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-10-05', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-10-05', 3),
+    deadline: '2026-10-05',
     daysWaitingClient: 1,
     collisionRisk: false,
     riskMessage: null,
     progress: 80,
     category: 'Casamento',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Animação', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2026-11-05'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite em Acrílico (Em Gráfica)', rule: '3 meses antes', deadline: calculateInvitationDeadline('2026-11-05'), status: 'in_progress', completed: false },
-      { id: 'd3', title: 'Welcome Cards & Papelaria Festa', rule: 'Data da Festa', deadline: '2026-11-05', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Animação', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-10-05', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite em Acrílico (Em Gráfica)', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-10-05', 3), status: 'in_progress', completed: false },
+      { id: 'd3', title: 'Welcome Cards & Papelaria Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-10-05', status: 'pending', completed: false }
     ],
     lastUpdate: 'Ajustando prova de cor com a gráfica'
   },
@@ -151,8 +151,8 @@ export const INITIAL_PROJECTS = [
     stage: 'final_delivery',
     value: 7500,
     partyDate: '2026-09-12',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-09-12'), // 2026-03-12
-    invitationDeadline: calculateInvitationDeadline('2026-09-12'),   // 2026-06-12
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-09-12', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-09-12', 3),
     deadline: '2026-09-12',
     daysWaitingClient: 0,
     collisionRisk: false,
@@ -160,9 +160,9 @@ export const INITIAL_PROJECTS = [
     progress: 95,
     category: 'Corporativo',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Teaser', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2026-09-12'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite VIP Credencial', rule: '3 meses antes', deadline: calculateInvitationDeadline('2026-09-12'), status: 'completed', completed: true },
-      { id: 'd3', title: 'Brindes, Painel de Palco & Festa', rule: 'Data da Festa', deadline: '2026-09-12', status: 'in_progress', completed: false }
+      { id: 'd1', title: 'Save the Date Teaser', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-09-12', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite VIP Credencial', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-09-12', 3), status: 'completed', completed: true },
+      { id: 'd3', title: 'Brindes, Painel de Palco & Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-09-12', status: 'in_progress', completed: false }
     ],
     lastUpdate: 'Pronto para entrega física na casa de festas'
   },
@@ -172,19 +172,19 @@ export const INITIAL_PROJECTS = [
     client: 'Clara (Esposa)',
     stage: 'briefing',
     value: 2800,
-    partyDate: '2027-04-18',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2027-04-18'), // 2026-10-18
-    invitationDeadline: calculateInvitationDeadline('2027-04-18'),   // 2027-01-18
-    deadline: '2027-04-18',
+    partyDate: '2026-12-18',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-12-18', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-12-18', 3),
+    deadline: '2026-12-18',
     daysWaitingClient: 2,
     collisionRisk: false,
     riskMessage: null,
     progress: 15,
     category: 'Aniversário',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Rústico Chic', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2027-04-18'), status: 'pending', completed: false },
-      { id: 'd2', title: 'Convite Caixa de Vinho', rule: '3 meses antes', deadline: calculateInvitationDeadline('2027-04-18'), status: 'pending', completed: false },
-      { id: 'd3', title: 'Rótulos Personalizados Festa', rule: 'Data da Festa', deadline: '2027-04-18', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Rústico Chic', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-12-18', 6), status: 'pending', completed: false },
+      { id: 'd2', title: 'Convite Caixa de Vinho', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-12-18', 3), status: 'pending', completed: false },
+      { id: 'd3', title: 'Rótulos Personalizados Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-12-18', status: 'pending', completed: false }
     ],
     lastUpdate: 'Recebendo lista de convidados'
   },
@@ -194,19 +194,19 @@ export const INITIAL_PROJECTS = [
     client: 'Renata Albuquerque',
     stage: 'creation',
     value: 2200,
-    partyDate: '2026-12-05',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-12-05'), // 2026-06-05
-    invitationDeadline: calculateInvitationDeadline('2026-12-05'),   // 2026-09-05
-    deadline: '2026-12-05',
+    partyDate: '2026-10-02',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-10-02', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-10-02', 3),
+    deadline: '2026-10-02',
     daysWaitingClient: 0,
     collisionRisk: true,
-    riskMessage: 'Prazo limite do Convite (05/09 - 3m) no mesmo período da entrega da Formatura',
+    riskMessage: 'Prazo limite do Convite (3w) no mesmo período da entrega da Formatura',
     progress: 40,
     category: 'Batizado',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Oração', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2026-12-05'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite Padrinhos & Convidados', rule: '3 meses antes', deadline: calculateInvitationDeadline('2026-12-05'), status: 'in_progress', completed: false },
-      { id: 'd3', title: 'Lembrancinhas Água Benta & Festa', rule: 'Data da Festa', deadline: '2026-12-05', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Oração', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-10-02', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite Padrinhos & Convidados', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-10-02', 3), status: 'in_progress', completed: false },
+      { id: 'd3', title: 'Lembrancinhas Água Benta & Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-10-02', status: 'pending', completed: false }
     ],
     lastUpdate: 'Ilustrando anjinho para o Convite'
   },
@@ -216,19 +216,19 @@ export const INITIAL_PROJECTS = [
     client: 'Juliana Toledo',
     stage: 'briefing',
     value: 8000,
-    partyDate: '2027-05-22',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2027-05-22'), // 2026-11-22
-    invitationDeadline: calculateInvitationDeadline('2027-05-22'),   // 2027-02-22
-    deadline: '2027-05-22',
+    partyDate: '2027-01-22',
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2027-01-22', 6),
+    invitationDeadline: calculateInvitationDeadline('2027-01-22', 3),
+    deadline: '2027-01-22',
     daysWaitingClient: 0,
     collisionRisk: false,
     riskMessage: null,
     progress: 10,
     category: 'Casamento',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Aquarela', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2027-05-22'), status: 'pending', completed: false },
-      { id: 'd2', title: 'Convite Tradicional Relevo', rule: '3 meses antes', deadline: calculateInvitationDeadline('2027-05-22'), status: 'pending', completed: false },
-      { id: 'd3', title: 'Papelaria Completa da Cerimônia & Festa', rule: 'Data da Festa', deadline: '2027-05-22', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Aquarela', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2027-01-22', 6), status: 'pending', completed: false },
+      { id: 'd2', title: 'Convite Tradicional Relevo', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2027-01-22', 3), status: 'pending', completed: false },
+      { id: 'd3', title: 'Papelaria Completa da Cerimônia & Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2027-01-22', status: 'pending', completed: false }
     ],
     lastUpdate: 'Contrato assinado. Aguardando briefing.'
   },
@@ -239,8 +239,8 @@ export const INITIAL_PROJECTS = [
     stage: 'waiting_approval',
     value: 9500,
     partyDate: '2026-10-25',
-    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-10-25'), // 2026-04-25
-    invitationDeadline: calculateInvitationDeadline('2026-10-25'),   // 2026-07-25
+    saveTheDateDeadline: calculateSaveTheDateDeadline('2026-10-25', 6),
+    invitationDeadline: calculateInvitationDeadline('2026-10-25', 3),
     deadline: '2026-10-25',
     daysWaitingClient: 3,
     collisionRisk: false,
@@ -248,9 +248,9 @@ export const INITIAL_PROJECTS = [
     progress: 75,
     category: 'Formatura',
     deliverables: [
-      { id: 'd1', title: 'Save the Date Vídeo', rule: '6 meses antes', deadline: calculateSaveTheDateDeadline('2026-10-25'), status: 'completed', completed: true },
-      { id: 'd2', title: 'Convite Formando Capa Dura', rule: '3 meses antes', deadline: calculateInvitationDeadline('2026-10-25'), status: 'waiting_approval', completed: false },
-      { id: 'd3', title: 'Placas de Homenagem & Decoração Festa', rule: 'Data da Festa', deadline: '2026-10-25', status: 'pending', completed: false }
+      { id: 'd1', title: 'Save the Date Vídeo', rule: '6 semanas antes', requiredHours: 5, deadline: calculateSaveTheDateDeadline('2026-10-25', 6), status: 'completed', completed: true },
+      { id: 'd2', title: 'Convite Formando Capa Dura', rule: '3 semanas antes', requiredHours: 10, deadline: calculateInvitationDeadline('2026-10-25', 3), status: 'waiting_approval', completed: false },
+      { id: 'd3', title: 'Placas de Homenagem & Decoração Festa', rule: 'Data da Festa', requiredHours: 20, deadline: '2026-10-25', status: 'pending', completed: false }
     ],
     lastUpdate: 'Comissão analisando a capa do Convite'
   }
@@ -260,22 +260,22 @@ export const INITIAL_PROJECTS = [
 export const AGENT_ACTIONS = [
   {
     id: 'verify_rules',
-    title: 'Verificar Regra 6m / 3m',
-    description: 'Checar prazos retroativos do Save the Date e Convite relativos às datas das Festas',
+    title: 'Verificar Regra 6 Semanas / 3 Semanas',
+    description: 'Checar prazos retroativos do Save the Date (6w/5h) e Convite (3w/10h) relativos às datas das Festas',
     icon: 'Clock',
     targetProjectId: null,
   },
   {
     id: 'reschedule_conflict',
     title: 'Resolver Conflito de Entregáveis',
-    description: 'Reorganizar os prazos de Convites de Setembro ajustando produção com margem de segurança',
+    description: 'Reorganizar os prazos dos Convites ajustando a janela de produção (10h) com margem de segurança',
     icon: 'Calendar',
     targetProjectId: null,
   },
   {
     id: 'capacity_check',
     title: 'Simular Novo Evento (Festa)',
-    description: 'Calcular prazos do Save the Date (-6m) e Convite (-3m) para uma nova data de festa',
+    description: 'Calcular prazos do Save the Date (-6w/5h) e Convite (-3w/10h) para uma nova data de festa na jornada 08h-17h',
     icon: 'Activity',
     targetProjectId: null,
   }

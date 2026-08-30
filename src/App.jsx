@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import FocusRadar from './components/FocusRadar';
 import ProjectPipeline from './components/ProjectPipeline';
@@ -8,13 +8,33 @@ import ProjectDetailModal from './components/ProjectDetailModal';
 import NewProjectModal from './components/NewProjectModal';
 import CapacityModal from './components/CapacityModal';
 import PitchModal from './components/PitchModal';
+import UserSettingsModal, { DEFAULT_SETTINGS } from './components/UserSettingsModal';
 import { INITIAL_PROJECTS, PERSONA_CAMILA } from './data/mockData';
 import { Sun } from 'lucide-react';
 
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
-  const [persona, setPersona] = useState(PERSONA_CAMILA);
+  const [persona] = useState(PERSONA_CAMILA);
   const [activeView, setActiveView] = useState('pipeline'); // 'pipeline' | 'calendar'
+
+  // User Settings State with localStorage persistence
+  const [userSettings, setUserSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('amozir_user_settings');
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  const handleSaveSettings = (newSettings) => {
+    setUserSettings(newSettings);
+    try {
+      localStorage.setItem('amozir_user_settings', JSON.stringify(newSettings));
+    } catch (e) {
+      console.warn('Erro ao salvar configurações no localStorage:', e);
+    }
+  };
 
   // Modals & Drawers States
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -24,6 +44,7 @@ export default function App() {
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isCapacityOpen, setIsCapacityOpen] = useState(false);
   const [isPitchOpen, setIsPitchOpen] = useState(false);
+  const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
 
   // Move project stage in pipeline
   const handleMoveProjectStage = (projectId, newStage) => {
@@ -63,14 +84,16 @@ export default function App() {
         onOpenCoringaAgent={() => handleOpenAgentAction('rules')}
         onOpenPitchModal={() => setIsPitchOpen(true)}
         onOpenCapacityModal={() => setIsCapacityOpen(true)}
+        onOpenUserSettings={() => setIsUserSettingsOpen(true)}
       />
 
       {/* Main Content Dashboard */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-page-x lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-page-x lg:px-8 py-8 space-y-8">
 
-        {/* Radar de Foco ("O que precisa da sua atenção AGORA - Regras 6m / 3m / Festa") */}
+        {/* Radar de Foco com recolhimento e filtros */}
         <FocusRadar
           projects={projects}
+          settings={userSettings}
           onSelectProject={(proj) => setSelectedProjectDetail(proj)}
           onOpenAgentAction={handleOpenAgentAction}
         />
@@ -79,6 +102,7 @@ export default function App() {
         {activeView === 'pipeline' ? (
           <ProjectPipeline
             projects={projects}
+            settings={userSettings}
             onMoveProjectStage={handleMoveProjectStage}
             onSelectProject={(proj) => setSelectedProjectDetail(proj)}
             onOpenAgentAction={handleOpenAgentAction}
@@ -86,6 +110,7 @@ export default function App() {
         ) : (
           <CalendarView
             projects={projects}
+            settings={userSettings}
             onSelectProject={(proj) => setSelectedProjectDetail(proj)}
           />
         )}
@@ -108,6 +133,7 @@ export default function App() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         projects={projects}
+        settings={userSettings}
         initialAction={agentActionType}
         onUpdateProjects={(updated) => setProjects(updated)}
       />
@@ -121,6 +147,7 @@ export default function App() {
         isOpen={isNewProjectOpen}
         onClose={() => setIsNewProjectOpen(false)}
         onAddProject={handleAddProject}
+        settings={userSettings}
       />
 
       <CapacityModal
@@ -128,6 +155,7 @@ export default function App() {
         onClose={() => setIsCapacityOpen(false)}
         projects={projects}
         persona={persona}
+        settings={userSettings}
       />
 
       <PitchModal
@@ -135,13 +163,27 @@ export default function App() {
         onClose={() => setIsPitchOpen(false)}
       />
 
+      <UserSettingsModal
+        isOpen={isUserSettingsOpen}
+        onClose={() => setIsUserSettingsOpen(false)}
+        settings={userSettings}
+        onSaveSettings={handleSaveSettings}
+      />
+
       {/* Footer */}
-      <footer className="border-t border-line bg-surface-2">
+      <footer className="border-t border-line bg-surface-2 mt-auto">
         <div className="max-w-7xl mx-auto px-page-x lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-caption text-ink-muted">
           <span className="text-center sm:text-left">
-            Amozir • Do prazo final ao próximo passo — Save the Date (6m) / Convite (3m) / Festa
+            Amozir • Do prazo final ao próximo passo — Std ({userSettings.saveTheDateWeeks}w/5h) / Convite ({userSettings.invitationWeeks}w/10h) / Festa (20h)
           </span>
           <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => setIsUserSettingsOpen(true)}
+              className="inline-flex items-center min-h-11 px-2 rounded-sm text-ink-muted hover:text-accent font-medium transition-colors duration-150 ease-quint"
+            >
+              ⚙️ Configurações do Usuário
+            </button>
+            <span aria-hidden="true" className="text-line-strong">•</span>
             <button
               onClick={() => setIsPitchOpen(true)}
               className="inline-flex items-center min-h-11 px-2 rounded-sm text-ink-muted hover:text-accent underline decoration-line-control underline-offset-4 transition-colors duration-150 ease-quint"

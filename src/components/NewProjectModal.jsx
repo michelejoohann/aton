@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, PartyPopper, Mail, Bookmark } from 'lucide-react';
 import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
 
-export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
+export default function NewProjectModal({ isOpen, onClose, onAddProject, settings }) {
   const [name, setName] = useState('');
   const [client, setClient] = useState('');
   const [category, setCategory] = useState('Casamento');
@@ -11,8 +11,14 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
 
   if (!isOpen) return null;
 
-  const saveTheDateDeadline = calculateSaveTheDateDeadline(partyDate);
-  const invitationDeadline = calculateInvitationDeadline(partyDate);
+  const stdWeeks = settings?.saveTheDateWeeks || 6;
+  const invWeeks = settings?.invitationWeeks || 3;
+  const stdHours = settings?.saveTheDateHours || 5;
+  const invHours = settings?.invitationHours || 10;
+  const partyHours = settings?.partyHours || 20;
+
+  const saveTheDateDeadline = calculateSaveTheDateDeadline(partyDate, stdWeeks);
+  const invitationDeadline = calculateInvitationDeadline(partyDate, invWeeks);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,9 +40,9 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
       progress: 10,
       category,
       deliverables: [
-        { id: `d-${Date.now()}-1`, title: 'Save the Date', rule: '6 meses antes', deadline: saveTheDateDeadline, status: 'in_progress', completed: false },
-        { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: '3 meses antes', deadline: invitationDeadline, status: 'pending', completed: false },
-        { id: `d-${Date.now()}-3`, title: 'Festa / Evento', rule: 'Data da Festa', deadline: partyDate, status: 'pending', completed: false }
+        { id: `d-${Date.now()}-1`, title: 'Save the Date', rule: `${stdWeeks} semanas antes`, requiredHours: stdHours, deadline: saveTheDateDeadline, status: 'in_progress', completed: false },
+        { id: `d-${Date.now()}-2`, title: 'Convite Oficial', rule: `${invWeeks} semanas antes`, requiredHours: invHours, deadline: invitationDeadline, status: 'pending', completed: false },
+        { id: `d-${Date.now()}-3`, title: 'Festa / Evento', rule: 'Data da Festa', requiredHours: partyHours, deadline: partyDate, status: 'pending', completed: false }
       ],
       lastUpdate: 'Cadastrado no Amozir'
     };
@@ -50,7 +56,7 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
   const labelClass = 'block text-caption font-semibold text-ink-muted mb-1.5';
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay animate-fade-in">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-ink/50 backdrop-blur-xs overflow-y-auto">
       <div className="bg-surface border border-line rounded-md w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-modal text-ink p-5 sm:p-6 space-y-5">
 
         <div className="flex items-start justify-between gap-3 pb-4 border-b border-line-strong">
@@ -63,14 +69,14 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
             </span>
             <div className="min-w-0">
               <h2 className="font-display text-section-title font-semibold text-ink">Cadastrar Novo Evento / Festa</h2>
-              <p className="text-caption text-ink-muted">O Amozir calculará retroativamente os prazos de 6m e 3m</p>
+              <p className="text-caption text-ink-muted">Cálculo retroativo pelas regras de {stdWeeks}w e {invWeeks}w semanas</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             aria-label="Fechar cadastro de evento"
-            className="inline-flex items-center justify-center shrink-0 min-w-11 min-h-11 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 ease-quint"
+            className="inline-flex items-center justify-center shrink-0 p-2 rounded-sm border border-line-control bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -156,21 +162,21 @@ export default function NewProjectModal({ isOpen, onClose, onAddProject }) {
             <div className="flex items-center justify-between gap-2 text-ink-muted">
               <span className="flex items-center gap-1.5">
                 <Bookmark className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
-                Save the Date (6m antes):
+                Save the Date ({stdWeeks} semanas / {stdHours}h):
               </span>
               <strong className="font-semibold text-ink tabular-nums">{formatDateBR(saveTheDateDeadline)}</strong>
             </div>
             <div className="flex items-center justify-between gap-2 text-ink-muted">
               <span className="flex items-center gap-1.5">
                 <Mail className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
-                Convite Oficial (3m antes):
+                Convite Oficial ({invWeeks} semanas / {invHours}h):
               </span>
               <strong className="font-semibold text-ink tabular-nums">{formatDateBR(invitationDeadline)}</strong>
             </div>
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-line text-ink">
               <span className="flex items-center gap-1.5 font-semibold">
                 <PartyPopper className="w-4 h-4 text-accent" aria-hidden="true" />
-                Data da Festa:
+                Data da Festa ({partyHours}h):
               </span>
               <strong className="font-semibold text-accent tabular-nums">{formatDateBR(partyDate)}</strong>
             </div>
