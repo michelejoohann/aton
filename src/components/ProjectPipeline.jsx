@@ -14,7 +14,7 @@ import {
   Minimize2,
   Maximize2
 } from 'lucide-react';
-import { formatDateBR } from '../utils/dateUtils';
+import { formatDateBR } from '../utils/dateUtils.js';
 
 const STAGE_PRESENTATION = {
   briefing: { marker: 'bg-ink-subtle', header: 'bg-surface-2 border-line', label: 'text-ink' },

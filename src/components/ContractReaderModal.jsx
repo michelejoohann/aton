@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, FileText, Upload, CheckCircle, AlertTriangle, Sparkles, Clock, Calendar, Check, Plus, ArrowRight } from 'lucide-react';
-import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
+import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils.js';
 
 // Amostras pré-carregadas para teste instantâneo sem necessidade de upload local
 const SAMPLE_CONTRACTS = [

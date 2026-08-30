@@ -13,7 +13,7 @@ import {
   Grid,
   ListOrdered
 } from 'lucide-react';
-import { formatDateBR, generateDailySchedule } from '../utils/dateUtils';
+import { formatDateBR, generateDailySchedule } from '../utils/dateUtils.js';
 
 export default function CalendarView({ projects, settings, onSelectProject }) {
   const [currentDate, setCurrentDate] = useState(new Date('2026-09-01T00:00:00'));

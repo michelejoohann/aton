@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import FocusRadar from './components/FocusRadar';
-import ProjectPipeline from './components/ProjectPipeline';
-import CalendarView from './components/CalendarView';
-import CoringaAgentDrawer from './components/CoringaAgentDrawer';
-import ProjectDetailModal from './components/ProjectDetailModal';
-import NewProjectModal from './components/NewProjectModal';
-import CapacityModal from './components/CapacityModal';
-import PitchModal from './components/PitchModal';
-import UserSettingsModal, { DEFAULT_SETTINGS } from './components/UserSettingsModal';
-import ContractReaderModal from './components/ContractReaderModal';
-import { INITIAL_PROJECTS, PERSONA_CAMILA } from './data/mockData';
+import Header from './components/Header.jsx';
+import FocusRadar from './components/FocusRadar.jsx';
+import ProjectPipeline from './components/ProjectPipeline.jsx';
+import CalendarView from './components/CalendarView.jsx';
+import CoringaAgentDrawer from './components/CoringaAgentDrawer.jsx';
+import ProjectDetailModal from './components/ProjectDetailModal.jsx';
+import NewProjectModal from './components/NewProjectModal.jsx';
+import CapacityModal from './components/CapacityModal.jsx';
+import PitchModal from './components/PitchModal.jsx';
+import UserSettingsModal, { DEFAULT_SETTINGS } from './components/UserSettingsModal.jsx';
+import ContractReaderModal from './components/ContractReaderModal.jsx';
+import { INITIAL_PROJECTS, PERSONA_CAMILA } from './data/mockData.js';
 import { Sun } from 'lucide-react';
 
 export default function App() {

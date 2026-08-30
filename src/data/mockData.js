@@ -1,4 +1,4 @@
-import { calculateSaveTheDateDeadline, calculateInvitationDeadline } from '../utils/dateUtils';
+import { calculateSaveTheDateDeadline, calculateInvitationDeadline } from '../utils/dateUtils.js';
 
 // Definição das Etapas do Pipeline do Coringa
 export const STAGES = [

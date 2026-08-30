@@ -15,7 +15,7 @@ import {
   Bookmark,
   Sun
 } from 'lucide-react';
-import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
+import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils.js';
 
 // Drawer do agente Amozir. O identificador do componente e do arquivo é
 // mantido de propósito: a renomeação desta rodada é de produto, não de código.

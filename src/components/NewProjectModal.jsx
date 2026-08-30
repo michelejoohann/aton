@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Plus, PartyPopper, Mail, Bookmark, FileText } from 'lucide-react';
-import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils';
+import { calculateSaveTheDateDeadline, calculateInvitationDeadline, formatDateBR } from '../utils/dateUtils.js';
 
 export default function NewProjectModal({ isOpen, onClose, onAddProject, onOpenContractReader, settings }) {
   const [name, setName] = useState('');

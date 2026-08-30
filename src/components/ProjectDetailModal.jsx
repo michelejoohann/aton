@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, CheckSquare, User, PartyPopper, Mail, Bookmark, Sun, FileText, DollarSign, Clock, AlertTriangle, MessageSquare, Check, Copy, Film, Image, CheckCircle2 } from 'lucide-react';
 import { STAGES } from '../data/mockData';
-import { formatDateBR, calculateRetrospectiveDeadline } from '../utils/dateUtils';
+import { formatDateBR, calculateRetrospectiveDeadline } from '../utils/dateUtils.js';
 
 export default function ProjectDetailModal({ project, onClose, settings }) {
   const [copiedMessage, setCopiedMessage] = useState(false);
