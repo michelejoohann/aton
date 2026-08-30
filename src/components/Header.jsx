@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Layers, Info, LayoutGrid, Calendar as CalendarIcon, Sun, AlertTriangle, Settings } from 'lucide-react';
+import { Plus, Layers, Info, LayoutGrid, Calendar as CalendarIcon, Sun, AlertTriangle, Settings, FileText } from 'lucide-react';
 
 export default function Header({
   persona,
