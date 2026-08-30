@@ -70,10 +70,12 @@ export default function FocusRadar({ projects = [], settings, onSelectProject, o
             <button
               onClick={() => setFilterRisk('CRITICAL')}
               className={`px-3 py-1.5 text-caption font-semibold rounded-xs transition-colors flex items-center gap-1.5 ${
-                filterRisk === 'CRITICAL' ? 'bg-warning text-on-warning' : 'text-ink-muted hover:text-ink'
+                filterRisk === 'CRITICAL'
+                  ? 'bg-urgent text-white shadow-xs'
+                  : 'text-ink-muted hover:text-ink hover:bg-surface'
               }`}
             >
-              <AlertTriangle className="w-3.5 h-3.5" />
+              <AlertTriangle className={`w-3.5 h-3.5 ${filterRisk === 'CRITICAL' ? 'text-white' : 'text-urgent'}`} />
               <span>Risco Crítico ({criticalProjects.length})</span>
             </button>
           </div>
